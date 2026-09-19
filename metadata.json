@@ -1,0 +1,6 @@
+{
+  "name": "Hummer H3 16-Channel Light Controller",
+  "description": "Touchscreen vehicle lighting and accessory control panel with interactive top-down zone mapping for Android headunits.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
