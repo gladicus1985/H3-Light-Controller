@@ -103,41 +103,36 @@ const VehicleHotspot: React.FC<VehicleHotspotProps> = ({
         e.preventDefault();
         e.stopPropagation();
       }}
-      title={`Channel ${channel.id}: ${channel.name} (Press & Hold to Edit)`}
+      title={`${channel.name} (Hold to configure)`}
     >
       <div
         className={`
-          relative flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full font-bold shadow-md transition-all duration-200
+          relative flex items-center justify-center w-11 h-11 sm:w-12 sm:h-12 md:w-13 md:h-13 rounded-lg font-bold shadow-lg transition-all duration-150
           ${
             isPressing
-              ? 'scale-125 ring-4 ring-cyan-400 ring-offset-2 ring-offset-slate-950 bg-slate-900 shadow-[0_0_20px_rgba(6,182,212,0.8)]'
+              ? 'scale-110 ring-4 ring-amber-400 ring-offset-2 ring-offset-black bg-[#2d3440]'
               : ''
           }
           ${
             isOn
-              ? `text-slate-950 font-black ring-2 ring-white shadow-[0_0_14px_rgba(255,255,255,0.7)] ${isStrobing ? 'animate-pulse' : ''}`
-              : 'bg-slate-950 text-slate-200 border-2 border-slate-600 hover:border-slate-400'
+              ? `border-2 border-white shadow-[0_0_18px_rgba(255,255,255,0.7)] ${isStrobing ? 'animate-pulse' : ''}`
+              : 'bg-[#181c24] border-2 border-[#384152] hover:border-[#64748b] hover:bg-[#222733]'
           }
-          ${isSelected && !isPressing ? 'ring-2 ring-cyan-400 ring-offset-2 ring-offset-slate-950' : ''}
+          ${isSelected && !isPressing ? 'ring-2 ring-amber-400 ring-offset-2 ring-offset-black' : ''}
         `}
         style={{
-          backgroundColor: isOn ? channel.color : undefined,
-          boxShadow: isOn ? `0 0 16px ${channel.color}` : undefined,
+          backgroundColor: isOn ? channel.color : '#181c24',
+          opacity: 1,
         }}
       >
-        {/* Selectable icon chosen in edit channel menu */}
+        {/* Selectable icon chosen in edit channel menu - Large and high-contrast OEM laser etched */}
         <IconComponent
-          className={`w-4 h-4 sm:w-4.5 sm:h-4.5 md:w-5 md:h-5 relative z-10 select-none pointer-events-none ${
-            isOn ? 'text-slate-950' : 'text-slate-200'
+          className={`w-6 h-6 sm:w-6.5 sm:h-6.5 relative z-10 select-none pointer-events-none ${
+            isOn
+              ? (channel.color === '#F8FAFC' || channel.color === '#FEF08A' || channel.color === '#F59E0B' ? 'text-slate-950 stroke-[2.5]' : 'text-white stroke-[2.5]')
+              : 'text-[#e2e8f0] stroke-[2]'
           }`}
         />
-
-        {/* Small corner channel number badge for quick numeric reference */}
-        <span
-          className="absolute -bottom-1 -right-1 text-[8.5px] font-mono font-black px-1 rounded-full bg-slate-950/95 text-slate-300 border border-slate-700/80 shadow-sm leading-tight select-none pointer-events-none"
-        >
-          {channel.id}
-        </span>
       </div>
     </div>
   );
@@ -822,29 +817,8 @@ export const HummerTopDown: React.FC<HummerTopDownProps> = ({
               <rect x="806" y="180" width="10" height="24" rx="2" fill="#b91c1c" stroke="#7f1d1d" strokeWidth="1" />
               <rect x="806" y="356" width="10" height="24" rx="2" fill="#b91c1c" stroke="#7f1d1d" strokeWidth="1" />
 
-              {/* Rear Mounted Heavy Off-Road Spare Tire with Wheel (Iconic H3 feature) */}
-              {/* Tire Bracket Mount */}
-              <rect x="816" y="260" width="22" height="40" rx="3" fill="#20242a" />
-              {/* Massive Spare Tire */}
-              <ellipse
-                cx="865"
-                cy="280"
-                rx="52"
-                ry="52"
-                fill="url(#tire-tread)"
-                stroke="#08090b"
-                strokeWidth="4"
-              />
-              {/* Tire Deep Rim Center */}
-              <ellipse cx="865" cy="280" rx="28" ry="28" fill="#181c22" stroke="#2c333e" strokeWidth="2.5" />
-              <ellipse cx="865" cy="280" rx="14" ry="14" fill="#0c0e12" />
-              {/* 6 Lug Nuts */}
-              {[0, 60, 120, 180, 240, 300].map((deg) => {
-                const rad = (deg * Math.PI) / 180;
-                const lx = 865 + Math.cos(rad) * 20;
-                const ly = 280 + Math.sin(rad) * 20;
-                return <circle key={deg} cx={lx} cy={ly} r="2.2" fill="#8d97a5" />;
-              })}
+          
+              
             </g>
           )}
 

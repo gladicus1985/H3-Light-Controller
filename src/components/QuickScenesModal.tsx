@@ -30,18 +30,22 @@ export const QuickScenesModal: React.FC<QuickScenesModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm select-none">
-      <div className="w-full max-w-md bg-[#0e1117] border border-slate-700/80 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+      <div className="w-full max-w-md bg-[#12151b] border-2 border-[#2c3340] rounded-lg shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-800 bg-slate-900/60">
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-cyan-400" />
-            <h3 className="text-base font-bold text-white">Preset Lighting Scenes</h3>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[#2b313c] bg-[#181c24]">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-md bg-[#242932] border border-[#3d4554] flex items-center justify-center text-[#e2e8f0]">
+              <Sparkles className="w-4 h-4" />
+            </div>
+            <h3 className="text-base font-bold text-white uppercase tracking-wider">
+              Lighting Scenes
+            </h3>
           </div>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            className="p-1.5 rounded-md text-[#94a3b8] hover:text-white hover:bg-[#252c38] transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -62,11 +66,11 @@ export const QuickScenesModal: React.FC<QuickScenesModalProps> = ({
                 key={scene.id}
                 id={`scene-row-${scene.id}`}
                 className={`
-                  p-3.5 rounded-xl border flex items-center justify-between gap-3 cursor-pointer transition-all duration-150
+                  p-4 rounded-md border-2 flex items-center justify-between gap-3 cursor-pointer transition-all duration-150
                   ${
                     isActive
-                      ? 'border-cyan-500/70 bg-cyan-950/20 text-white shadow-[0_0_12px_rgba(6,182,212,0.15)]'
-                      : 'border-slate-800 bg-slate-900/50 text-slate-300 hover:border-slate-700 hover:bg-slate-800/60'
+                      ? 'border-emerald-500/80 bg-[#1a2820] text-white shadow-md'
+                      : 'border-[#29303c] bg-[#181d26] text-[#cbd5e1] hover:border-[#3e4858] hover:bg-[#1f2530]'
                   }
                 `}
                 onClick={() => {
@@ -77,11 +81,11 @@ export const QuickScenesModal: React.FC<QuickScenesModalProps> = ({
                 <div className="flex items-center gap-3">
                   <div
                     className={`
-                      p-2.5 rounded-xl flex-shrink-0
+                      w-10 h-10 rounded-md flex items-center justify-center flex-shrink-0 border
                       ${
                         isActive
-                          ? 'bg-cyan-500 text-slate-950'
-                          : 'bg-slate-800 text-slate-400'
+                          ? 'bg-emerald-600 text-white border-emerald-400'
+                          : 'bg-[#242a35] text-[#94a3b8] border-[#374050]'
                       }
                     `}
                   >
@@ -89,20 +93,15 @@ export const QuickScenesModal: React.FC<QuickScenesModalProps> = ({
                   </div>
 
                   <div>
-                    <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                    <h4 className="text-sm font-bold text-white uppercase tracking-wide flex items-center gap-2">
                       <span>{scene.name}</span>
                       {isActive && (
-                        <span className="text-[10px] font-mono font-normal uppercase px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                        <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
                           Active
                         </span>
                       )}
                     </h4>
-                    <p className="text-xs text-slate-400 mt-0.5">{scene.description}</p>
-                    <div className="text-[10px] text-slate-500 font-mono mt-1">
-                      {scene.activeChannelIds.length === 0
-                        ? 'All channels OFF'
-                        : `Channels: ${scene.activeChannelIds.join(', ')} (${scene.activeChannelIds.length} active)`}
-                    </div>
+                    <p className="text-xs text-[#94a3b8] mt-0.5">{scene.description}</p>
                   </div>
                 </div>
 
@@ -110,11 +109,11 @@ export const QuickScenesModal: React.FC<QuickScenesModalProps> = ({
                   <button
                     type="button"
                     className={`
-                      px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors
+                      px-4 py-2 rounded-md text-xs font-black uppercase tracking-wider transition-colors shadow-sm active:translate-y-0.5
                       ${
                         isActive
-                          ? 'bg-cyan-500 text-slate-950'
-                          : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white'
+                          ? 'bg-emerald-600 text-white border border-emerald-400'
+                          : 'bg-[#272e3a] text-white border border-[#3e4858] hover:bg-[#323b49]'
                       }
                     `}
                   >
@@ -127,9 +126,9 @@ export const QuickScenesModal: React.FC<QuickScenesModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-3 border-t border-slate-800 bg-slate-900/40 text-center">
-          <p className="text-[11px] text-slate-500">
-            Tapping a scene engages predefined 12V relay channels immediately.
+        <div className="p-3.5 border-t border-[#272d38] bg-[#15181f] text-center">
+          <p className="text-[11px] text-[#64748b] uppercase tracking-wider font-semibold">
+            OEM PRESET 12V RELAY SCENES
           </p>
         </div>
       </div>

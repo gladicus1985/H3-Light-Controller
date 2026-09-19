@@ -4,44 +4,19 @@
  */
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { ChannelConfig, HardwareConfig } from './types';
+import { ChannelConfig, HardwareConfig, PresetScene } from './types';
 import { DEFAULT_CHANNELS, PRESET_SCENES } from './data/defaultChannels';
 import { HummerTopDown } from './components/HummerTopDown';
 import { MasterBar } from './components/MasterBar';
 import { ChannelEditModal } from './components/ChannelEditModal';
 import { HardwareSettingsModal } from './components/HardwareSettingsModal';
-import { QuickScenesModal } from './components/QuickScenesModal';
+import { BottomScenesBar } from './components/BottomScenesBar';
+import { SceneEditorModal } from './components/SceneEditorModal';
 
-const STORAGE_KEY_CHANNELS = 'hummer_h3_channels_v3';
+const STORAGE_KEY_CHANNELS = 'hummer_h3_channels_v5';
 const STORAGE_KEY_HARDWARE = 'hummer_h3_hardware_v2';
 const STORAGE_KEY_IMAGE = 'hummer_h3_custom_img_v2';
-
-// Clean Web Audio tactile click for automotive touchscreen feedback
-const playTactileClick = (state: boolean) => {
-  try {
-    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-    if (!AudioContextClass) return;
-    const ctx = new AudioContextClass();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-
-    osc.type = 'sine';
-    // Higher tone for ON, slightly lower for OFF
-    osc.frequency.setValueAtTime(state ? 980 : 640, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(state ? 1200 : 320, ctx.currentTime + 0.04);
-
-    gain.gain.setValueAtTime(0.12, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.04);
-
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-
-    osc.start();
-    osc.stop(ctx.currentTime + 0.045);
-  } catch {
-    // Ignore audio errors on unmuted autoplay restrictions
-  }
-};
+const STORAGE_KEY_SCENES = 'hummer_h3_scenes_v2';
 
 export default function App() {
   // 16-Channel state loaded from localStorage or defaults
@@ -51,11 +26,14 @@ export default function App() {
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length === 16) {
-          // Ensure rock lights 8 and 14 are snug to the wheel well (like 7 and 13),
-          // channel 4 is up towards passenger side and backwards on roof, and channels 9 & 10 are aligned
           return parsed.map((ch: ChannelConfig) => {
-            if (ch.id === 4 && (ch.position.x !== 41 || ch.position.y !== 36)) {
-              return { ...ch, name: 'Amber Cab Markers (x5)', position: { x: 41, y: 36 } };
+            // Align Grille LED Pods (Channel 2) on Y axis with Fog Light button (x: 13)
+            if (ch.id === 2 && (ch.position.x !== 13 || ch.position.y !== 60)) {
+              return { ...ch, position: { x: 13, y: 60 } };
+            }
+            // Center Roof Marker Pods (Channel 4) on roof just behind the pods (x: 43, y: 50)
+            if (ch.id === 4 && (ch.position.x !== 43 || ch.position.y !== 50)) {
+              return { ...ch, name: 'Amber Cab Markers (x5)', position: { x: 43, y: 50 } };
             }
             if (ch.id === 7 && (ch.position.x !== 22 || ch.position.y !== 23)) {
               return { ...ch, position: { x: 22, y: 23 } };
@@ -114,8 +92,25 @@ export default function App() {
   const [selectedChannelId, setSelectedChannelId] = useState<number | null>(null);
   const [editingChannel, setEditingChannel] = useState<ChannelConfig | null>(null);
 
+  // Scenes state loaded from localStorage or defaults
+  const [scenes, setScenes] = useState<PresetScene[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_SCENES);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+    } catch {
+      // fallback
+    }
+    return PRESET_SCENES;
+  });
+
   // Modals state
-  const [isScenesModalOpen, setIsScenesModalOpen] = useState(false);
+  const [isSceneEditorOpen, setIsSceneEditorOpen] = useState(false);
+  const [sceneToEdit, setSceneToEdit] = useState<PresetScene | null>(null);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
 
   // Sync channels to localStorage
@@ -126,6 +121,15 @@ export default function App() {
       console.warn('LocalStorage save error', e);
     }
   }, [channels]);
+
+  // Sync scenes to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY_SCENES, JSON.stringify(scenes));
+    } catch (e) {
+      console.warn('LocalStorage save error', e);
+    }
+  }, [scenes]);
 
   // Sync hardware config to localStorage
   useEffect(() => {
@@ -180,7 +184,6 @@ export default function App() {
         const next = prev.map((ch) => {
           if (ch.id === id) {
             const nextState = !ch.isOn;
-            playTactileClick(nextState);
             dispatchHardwareSignal(id, nextState);
             return { ...ch, isOn: nextState };
           }
@@ -194,7 +197,6 @@ export default function App() {
 
   // Master ALL OFF - Instant safety cutoff
   const handleMasterAllOff = useCallback(() => {
-    playTactileClick(false);
     setChannels((prev) =>
       prev.map((ch) => {
         if (ch.isOn) dispatchHardwareSignal(ch.id, false);
@@ -205,7 +207,6 @@ export default function App() {
 
   // Master ALL ON (Only enables active/enabled channels)
   const handleMasterAllOn = useCallback(() => {
-    playTactileClick(true);
     setChannels((prev) =>
       prev.map((ch) => {
         if (ch.isEnabled === false) return ch; // Skip disabled channels
@@ -218,10 +219,9 @@ export default function App() {
   // Apply a Preset Scene
   const handleApplyScene = useCallback(
     (sceneId: string) => {
-      const scene = PRESET_SCENES.find((s) => s.id === sceneId);
+      const scene = scenes.find((s) => s.id === sceneId);
       if (!scene) return;
 
-      playTactileClick(scene.activeChannelIds.length > 0);
       setChannels((prev) =>
         prev.map((ch) => {
           const shouldBeOn = scene.activeChannelIds.includes(ch.id);
@@ -232,8 +232,33 @@ export default function App() {
         })
       );
     },
-    [dispatchHardwareSignal]
+    [scenes, dispatchHardwareSignal]
   );
+
+  // Scene creation & edit handlers
+  const handleNewScene = useCallback(() => {
+    setSceneToEdit(null);
+    setIsSceneEditorOpen(true);
+  }, []);
+
+  const handleEditScene = useCallback((scene: PresetScene) => {
+    setSceneToEdit(scene);
+    setIsSceneEditorOpen(true);
+  }, []);
+
+  const handleSaveScene = useCallback((savedScene: PresetScene) => {
+    setScenes((prev) => {
+      const exists = prev.some((s) => s.id === savedScene.id);
+      if (exists) {
+        return prev.map((s) => (s.id === savedScene.id ? savedScene : s));
+      }
+      return [...prev, savedScene];
+    });
+  }, []);
+
+  const handleDeleteScene = useCallback((sceneId: string) => {
+    setScenes((prev) => prev.filter((s) => s.id !== sceneId));
+  }, []);
 
   // Save edited channel
   const handleSaveChannel = useCallback((updated: ChannelConfig) => {
@@ -248,6 +273,7 @@ export default function App() {
   // Reset to Factory Default Channels
   const handleResetToDefaults = useCallback(() => {
     setChannels(DEFAULT_CHANNELS);
+    setScenes(PRESET_SCENES);
     setCustomImageUrl(null);
   }, []);
 
@@ -256,21 +282,27 @@ export default function App() {
   const activeCount = activeChannels.length;
   const activeChannelIds = useMemo(() => activeChannels.map((c) => c.id), [activeChannels]);
 
+  // Determine which scene is currently active if channels match
+  const activeSceneId = useMemo(() => {
+    const onIds = [...activeChannelIds].sort((a, b) => a - b).join(',');
+    const matched = scenes.find(
+      (s) => [...s.activeChannelIds].sort((a, b) => a - b).join(',') === onIds
+    );
+    return matched ? matched.id : null;
+  }, [activeChannelIds, scenes]);
+
   return (
     <div className="min-h-screen bg-[#07090c] text-slate-100 flex flex-col font-sans selection:bg-cyan-500 selection:text-black">
-      {/* Top Cockpit Master Bar */}
+      {/* Top Cockpit Master Bar - Narrow & Simple */}
       <MasterBar
         activeCount={activeCount}
         onMasterAllOff={handleMasterAllOff}
         onMasterAllOn={handleMasterAllOn}
-        onOpenScenes={() => setIsScenesModalOpen(true)}
         onOpenSettings={() => setIsSettingsModalOpen(true)}
-        presetScenes={PRESET_SCENES}
-        onApplyScene={handleApplyScene}
       />
 
       {/* Main Kiosk Touchscreen View: Vehicle stretched to fit display with zero filler space */}
-      <main className="flex-1 w-full h-[calc(100vh-53px)] p-0 m-0 flex flex-col items-stretch justify-stretch overflow-hidden">
+      <main className="flex-1 w-full min-h-0 p-0 m-0 flex flex-col items-stretch justify-stretch overflow-hidden relative">
         <div className="w-full h-full flex-1 flex flex-col items-stretch justify-stretch">
           <HummerTopDown
             channels={channels}
@@ -283,6 +315,15 @@ export default function App() {
         </div>
       </main>
 
+      {/* Bottom Persistent Scenes Row with Scene Editor & Creator */}
+      <BottomScenesBar
+        presetScenes={scenes}
+        activeSceneId={activeSceneId}
+        onApplyScene={handleApplyScene}
+        onNewScene={handleNewScene}
+        onEditScene={handleEditScene}
+      />
+
       {/* Channel Edit Modal */}
       <ChannelEditModal
         channel={editingChannel}
@@ -292,13 +333,18 @@ export default function App() {
         onLiveUpdate={handleLiveUpdateChannel}
       />
 
-      {/* Preset Scenes Modal */}
-      <QuickScenesModal
-        isOpen={isScenesModalOpen}
-        onClose={() => setIsScenesModalOpen(false)}
-        presetScenes={PRESET_SCENES}
-        onApplyScene={handleApplyScene}
-        activeChannelIds={activeChannelIds}
+      {/* Scene Creator & Editor Modal */}
+      <SceneEditorModal
+        isOpen={isSceneEditorOpen}
+        onClose={() => {
+          setIsSceneEditorOpen(false);
+          setSceneToEdit(null);
+        }}
+        sceneToEdit={sceneToEdit}
+        onSaveScene={handleSaveScene}
+        onDeleteScene={handleDeleteScene}
+        channels={channels}
+        currentActiveChannelIds={activeChannelIds}
       />
 
       {/* Hardware Relay Settings Modal */}

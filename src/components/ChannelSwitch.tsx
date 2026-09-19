@@ -54,52 +54,41 @@ export const ChannelSwitch: React.FC<ChannelSwitchProps> = ({
     <div
       id={`switch-card-${channel.id}`}
       className={`
-        relative group flex flex-col justify-between p-3.5 rounded-xl border select-none cursor-pointer
+        relative group flex flex-col justify-between p-4 rounded-lg border-2 select-none cursor-pointer transition-all
         ${
           !isEnabled
-            ? 'bg-slate-950/40 border-dashed border-slate-800 opacity-50 hover:opacity-80'
+            ? 'bg-[#14171d] border-dashed border-[#2b313c] opacity-60'
             : channel.isOn
-            ? 'bg-slate-900/90 border-slate-600 shadow-[0_0_15px_rgba(0,0,0,0.5)]'
-            : 'bg-slate-950/80 border-slate-800/80 hover:border-slate-700 hover:bg-slate-900/40'
+            ? 'bg-[#222730] border-white shadow-md'
+            : 'bg-[#181c24] border-[#313744] hover:border-[#4b5565] hover:bg-[#1e232c]'
         }
-        ${isSelected && isEnabled ? 'ring-2 ring-cyan-500/80 ring-offset-1 ring-offset-slate-950' : ''}
+        ${isSelected && isEnabled ? 'ring-2 ring-amber-400 ring-offset-2 ring-offset-black' : ''}
       `}
       onClick={handleClick}
       onPointerDown={handlePointerDown}
       onPointerUp={handlePointerUp}
       onPointerLeave={handlePointerUp}
     >
-      {/* Top row: Channel number badge, status indicator, and settings icon */}
+      {/* Top row: Status indicator and settings icon */}
       <div className="flex items-center justify-between gap-1 mb-2">
         <div className="flex items-center gap-1.5">
           <span
-            className={`
-              inline-flex items-center justify-center w-6 h-6 rounded-md text-xs font-bold font-mono
-              ${
-                !isEnabled
-                  ? 'bg-slate-900 text-slate-600 border border-slate-800 line-through'
-                  : channel.isOn
-                  ? 'bg-slate-800 text-white border border-slate-600'
-                  : 'bg-slate-900 text-slate-400 border border-slate-800'
-              }
-            `}
-          >
-            {channel.id}
+            className={`w-2.5 h-2.5 rounded-full ${
+              !isEnabled
+                ? 'bg-slate-700'
+                : channel.isOn
+                ? 'bg-emerald-400 shadow-[0_0_6px_#34d399]'
+                : 'bg-slate-600'
+            }`}
+          />
+          <span className="text-[11px] uppercase tracking-wider text-[#94a3b8] font-bold">
+            {!isEnabled ? 'DISABLED' : channel.isOn ? 'ON' : 'OFF'}
           </span>
-          <span className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">
-            CH {channel.id}
-          </span>
-          {!isEnabled && (
-            <span className="text-[9px] uppercase px-1 py-0.5 rounded font-mono bg-amber-950/60 text-amber-400/90 border border-amber-800/40">
-              DISABLED
-            </span>
-          )}
         </div>
 
-        {/* LED Status Glow Indicator */}
         <div className="flex items-center gap-1.5">
           {channel.mode !== 'toggle' && (
-            <span className="text-[9px] uppercase px-1.5 py-0.5 rounded font-mono bg-slate-800 text-slate-400 border border-slate-700">
+            <span className="text-[9px] uppercase px-1.5 py-0.5 rounded font-mono bg-[#242933] text-[#94a3b8] border border-[#3b4352]">
               {channel.mode}
             </span>
           )}
@@ -107,14 +96,14 @@ export const ChannelSwitch: React.FC<ChannelSwitchProps> = ({
           <button
             type="button"
             id={`edit-btn-ch-${channel.id}`}
-            aria-label={`Configure Channel ${channel.id}`}
-            className="p-1 text-slate-500 hover:text-slate-300 rounded hover:bg-slate-800/80 transition-colors"
+            aria-label={`Configure ${channel.name}`}
+            className="p-1 text-[#94a3b8] hover:text-white rounded hover:bg-[#2c3340] transition-colors"
             onClick={(e) => {
               e.stopPropagation();
               onEdit(channel);
             }}
           >
-            <LucideIcons.Settings2 className="w-3.5 h-3.5" />
+            <LucideIcons.Settings2 className="w-4 h-4" />
           </button>
         </div>
       </div>

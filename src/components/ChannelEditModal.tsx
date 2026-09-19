@@ -102,24 +102,21 @@ export const ChannelEditModal: React.FC<ChannelEditModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm select-none">
       <div className="w-full max-w-lg bg-[#0e1117] border border-slate-700/80 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-800 bg-slate-900/60">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[#2d3440] bg-[#161a22]">
           <div className="flex items-center gap-2.5">
-            <span className="w-6 h-6 rounded bg-cyan-500/20 text-cyan-400 font-mono text-xs font-bold flex items-center justify-center border border-cyan-500/30">
-              {formData.id}
-            </span>
             {/* Live preview of the channel's selectable icon */}
-            <div className="w-6 h-6 rounded bg-slate-800 text-cyan-300 flex items-center justify-center border border-slate-700">
-              {React.createElement((LucideIcons as any)[formData.iconName] || Zap, { className: 'w-3.5 h-3.5' })}
+            <div className="w-8 h-8 rounded-md bg-[#242a35] text-white flex items-center justify-center border border-[#3b4455]">
+              {React.createElement((LucideIcons as any)[formData.iconName] || Zap, { className: 'w-4 h-4' })}
             </div>
-            <h3 className="text-base font-bold text-white">
-              Configure Channel {formData.id}
+            <h3 className="text-base font-bold text-white uppercase tracking-wider">
+              {formData.name}
             </h3>
           </div>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            className="p-1.5 rounded-md text-[#94a3b8] hover:text-white hover:bg-[#252b37] transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -373,20 +370,20 @@ export const ChannelEditModal: React.FC<ChannelEditModalProps> = ({
           </div>
 
           {/* Footer Actions */}
-          <div className="pt-3 border-t border-slate-800 flex items-center justify-end gap-2.5">
+          <div className="pt-3 border-t border-[#2d3440] flex items-center justify-end gap-3">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-white bg-slate-900 hover:bg-slate-800 border border-slate-800"
+              className="px-5 py-2.5 rounded-md text-xs font-bold uppercase tracking-wider text-[#94a3b8] hover:text-white bg-[#222730] hover:bg-[#2c3340] border border-[#3b4455] shadow-sm active:translate-y-0.5"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="flex items-center gap-1.5 px-5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-cyan-500 hover:bg-cyan-400 text-slate-950 shadow-md active:scale-95 transition-transform"
+              className="flex items-center gap-2 px-6 py-2.5 rounded-md text-xs font-black uppercase tracking-wider bg-[#2a303b] hover:bg-[#343c49] text-white border-2 border-[#454f60] shadow-sm active:translate-y-0.5"
             >
               <Check className="w-4 h-4" />
-              <span>Save Channel</span>
+              <span>Save Changes</span>
             </button>
           </div>
         </form>

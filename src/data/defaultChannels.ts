@@ -24,7 +24,7 @@ export const DEFAULT_CHANNELS: ChannelConfig[] = [
     mode: 'toggle',
     iconName: 'Zap',
     ampDraw: 8.0,
-    position: { x: 10, y: 50 }, // Centered in front 7-slot chrome grille
+    position: { x: 13, y: 60 }, // Aligned on Y axis with front fog light button (x: 13)
     beamType: 'front-spot',
   },
   {
@@ -50,7 +50,7 @@ export const DEFAULT_CHANNELS: ChannelConfig[] = [
     mode: 'toggle',
     iconName: 'ShieldAlert',
     ampDraw: 1.5,
-    position: { x: 24, y: 40 }, // Above windshield centered on roof
+    position: { x: 43, y: 50 }, // Centered on roof just behind amber cab marker pods
     beamType: 'marker-front',
   },
   {

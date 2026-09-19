@@ -230,37 +230,28 @@ export const HardwareSettingsModal: React.FC<HardwareSettingsModalProps> = ({
                 return (
                   <div
                     key={ch.id}
-                    className={`flex items-center justify-between p-2 rounded-lg border text-xs transition-all ${
+                    className={`flex items-center justify-between p-2.5 rounded-md border text-xs transition-all ${
                       isEnabled
-                        ? 'bg-slate-900/80 border-slate-800 text-slate-200'
-                        : 'bg-slate-950 border-rose-900/30 text-slate-500'
+                        ? 'bg-[#181d26] border-[#2b3341] text-[#e2e8f0]'
+                        : 'bg-[#12151b] border-[#20252e] text-[#64748b]'
                     }`}
                   >
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span
-                        className={`w-5 h-5 rounded flex items-center justify-center text-[10px] font-mono font-bold ${
-                          isEnabled
-                            ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
-                            : 'bg-slate-800 text-slate-500'
-                        }`}
-                      >
-                        {ch.id}
-                      </span>
+                    <div className="flex items-center gap-2.5 min-w-0">
                       <Icon
-                        className={`w-3.5 h-3.5 flex-shrink-0 ${
-                          isEnabled ? 'text-slate-200' : 'text-slate-600'
+                        className={`w-4 h-4 flex-shrink-0 ${
+                          isEnabled ? 'text-[#e2e8f0]' : 'text-[#64748b]'
                         }`}
                       />
                       <span
-                        className={`truncate font-medium text-[11px] ${
-                          isEnabled ? 'text-slate-200' : 'text-slate-500 line-through'
+                        className={`truncate font-semibold text-xs ${
+                          isEnabled ? 'text-[#f1f5f9]' : 'text-[#64748b] line-through'
                         }`}
                       >
                         {ch.name}
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                    <div className="flex items-center gap-2 flex-shrink-0">
                       {onEditChannel && (
                         <button
                           type="button"
@@ -268,10 +259,10 @@ export const HardwareSettingsModal: React.FC<HardwareSettingsModalProps> = ({
                             onClose();
                             onEditChannel(ch);
                           }}
-                          className="p-1 rounded text-slate-400 hover:text-cyan-300 hover:bg-slate-800 transition-colors"
-                          title={`Configure Channel ${ch.id}`}
+                          className="p-1.5 rounded-md text-[#94a3b8] hover:text-white hover:bg-[#252c38] transition-colors"
+                          title={`Configure ${ch.name}`}
                         >
-                          <Edit3 className="w-3.5 h-3.5" />
+                          <Edit3 className="w-4 h-4" />
                         </button>
                       )}
                       <button
@@ -284,21 +275,21 @@ export const HardwareSettingsModal: React.FC<HardwareSettingsModalProps> = ({
                           );
                           onUpdateChannels(nextChannels);
                         }}
-                        className={`px-2 py-1 rounded text-[10px] font-bold flex items-center gap-1 transition-all ${
+                        className={`px-3 py-1.5 rounded-md text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all ${
                           isEnabled
-                            ? 'bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 border border-emerald-500/40'
-                            : 'bg-rose-500/20 text-rose-300 hover:bg-rose-500/30 border border-rose-500/40'
+                            ? 'bg-[#1e2e28] text-emerald-400 hover:bg-[#263b33] border border-emerald-700/60'
+                            : 'bg-[#261e22] text-rose-300 hover:bg-[#33262d] border border-rose-800/60'
                         }`}
                       >
                         {isEnabled ? (
                           <>
-                            <Eye className="w-3 h-3" />
+                            <Eye className="w-3.5 h-3.5" />
                             <span>Visible</span>
                           </>
                         ) : (
                           <>
-                            <EyeOff className="w-3 h-3" />
-                            <span>Re-enable</span>
+                            <EyeOff className="w-3.5 h-3.5" />
+                            <span>Enable</span>
                           </>
                         )}
                       </button>
@@ -362,17 +353,17 @@ export const HardwareSettingsModal: React.FC<HardwareSettingsModalProps> = ({
           </div>
 
           {/* Footer Actions */}
-          <div className="pt-3 border-t border-slate-800 flex items-center justify-end gap-2.5">
+          <div className="pt-3 border-t border-[#2b313c] flex items-center justify-end gap-3">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-white bg-slate-900 hover:bg-slate-800 border border-slate-800"
+              className="px-5 py-2.5 rounded-md text-xs font-bold uppercase tracking-wider text-[#94a3b8] hover:text-white bg-[#222730] hover:bg-[#2c3340] border border-[#3b4455] shadow-sm active:translate-y-0.5"
             >
               Close
             </button>
             <button
               type="submit"
-              className="flex items-center gap-1.5 px-5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-cyan-500 hover:bg-cyan-400 text-slate-950 shadow-md active:scale-95 transition-transform"
+              className="flex items-center gap-2 px-6 py-2.5 rounded-md text-xs font-black uppercase tracking-wider bg-[#2a303b] hover:bg-[#343c49] text-white border-2 border-[#454f60] shadow-sm active:translate-y-0.5"
             >
               <Check className="w-4 h-4" />
               <span>Save Settings</span>
