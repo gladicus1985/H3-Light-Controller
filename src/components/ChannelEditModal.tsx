@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ChannelConfig, SwitchMode, LightZoneCategory } from '../types';
+import { DEFAULT_CHANNELS } from '../data/defaultChannels';
 import {
   X,
   Check,
@@ -62,7 +63,8 @@ const AVAILABLE_ICONS = [
   { name: 'Sun', label: 'Roof Flood', icon: Sun },
   { name: 'Moon', label: 'Night / Amber', icon: Moon },
   { name: 'Gauge', label: 'Cockpit', icon: Gauge },
-  { name: 'Lightbulb', label: 'Dome', icon: Lightbulb },
+  { name: 'Lightbulb', label: 'Lightbulb', icon: Lightbulb },
+  { name: 'Dome', label: 'Dome', icon: (LucideIcons as any).Dome || Lightbulb },
   { name: 'Box', label: 'Cargo', icon: Box },
   { name: 'Wind', label: 'Compressor', icon: Wind },
   { name: 'AlertTriangle', label: 'Warning', icon: AlertTriangle },
@@ -362,12 +364,124 @@ export const ChannelEditModal: React.FC<ChannelEditModalProps> = ({
             />
           </div>
 
-          {/* Mode description note */}
-          <div className="pt-2 border-t border-slate-800/80">
-            <p className="text-[11px] text-slate-500 italic">
-              Vehicle lighting coordinates are fixed to schematic diagram presets.
+          {/* Button Hotspot Location Calibration */}
+          <div className="p-3 bg-slate-900 border border-slate-800 rounded-xl space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                <Compass className="w-3.5 h-3.5 text-cyan-400" />
+                <span>Button Hotspot Location (Switch X / Y)</span>
+              </span>
+              <span className="text-[11px] font-mono text-cyan-400">
+                X: {formData.position?.x ?? 50}% | Y: {formData.position?.y ?? 50}%
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[11px] text-slate-400 mb-1">X (Front ⟷ Rear): {formData.position?.x ?? 50}%</label>
+                <input
+                  type="range"
+                  min="5"
+                  max="95"
+                  step="1"
+                  value={formData.position?.x ?? 50}
+                  onChange={(e) => {
+                    const xVal = Number(e.target.value);
+                    updateFormData({
+                      position: { ...(formData.position || { x: 50, y: 50 }), x: xVal }
+                    });
+                  }}
+                  className="w-full accent-cyan-400 cursor-pointer h-2 bg-slate-800 rounded-lg"
+                />
+              </div>
+              <div>
+                <label className="block text-[11px] text-slate-400 mb-1">Y (Up ⟷ Down): {formData.position?.y ?? 50}%</label>
+                <input
+                  type="range"
+                  min="5"
+                  max="95"
+                  step="1"
+                  value={formData.position?.y ?? 50}
+                  onChange={(e) => {
+                    const yVal = Number(e.target.value);
+                    updateFormData({
+                      position: { ...(formData.position || { x: 50, y: 50 }), y: yVal }
+                    });
+                  }}
+                  className="w-full accent-cyan-400 cursor-pointer h-2 bg-slate-800 rounded-lg"
+                />
+              </div>
+            </div>
+            <p className="text-[10px] text-slate-500">
+              Moves where the interactive switch button hotspot is placed on the vehicle panel.
             </p>
           </div>
+
+          {/* Light Source Emission Location Calibration */}
+          {(() => {
+            const defaultCh = DEFAULT_CHANNELS.find(d => d.id === formData.id);
+            const defLightX = defaultCh?.position.x ?? 50;
+            const defLightY = defaultCh?.position.y ?? 50;
+            const currentLightX = formData.lightPosition?.x ?? defLightX;
+            const currentLightY = formData.lightPosition?.y ?? defLightY;
+            return (
+              <div className="p-3 bg-slate-900 border border-slate-800 rounded-xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                    <SunMedium className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Light Source Emission Location (Light X / Y)</span>
+                  </span>
+                  <span className="text-[11px] font-mono text-amber-400">
+                    X: {currentLightX}% | Y: {currentLightY}%
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] text-slate-400 mb-1">X (Front ⟷ Rear): {currentLightX}%</label>
+                    <input
+                      type="range"
+                      min="5"
+                      max="95"
+                      step="1"
+                      value={currentLightX}
+                      onChange={(e) => {
+                        const xVal = Number(e.target.value);
+                        updateFormData({
+                          lightPosition: { 
+                            x: xVal, 
+                            y: currentLightY 
+                          }
+                        });
+                      }}
+                      className="w-full accent-amber-400 cursor-pointer h-2 bg-slate-800 rounded-lg"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] text-slate-400 mb-1">Y (Up ⟷ Down): {currentLightY}%</label>
+                    <input
+                      type="range"
+                      min="5"
+                      max="95"
+                      step="1"
+                      value={currentLightY}
+                      onChange={(e) => {
+                        const yVal = Number(e.target.value);
+                        updateFormData({
+                          lightPosition: { 
+                            x: currentLightX, 
+                            y: yVal 
+                          }
+                        });
+                      }}
+                      className="w-full accent-amber-400 cursor-pointer h-2 bg-slate-800 rounded-lg"
+                    />
+                  </div>
+                </div>
+                <p className="text-[10px] text-slate-500">
+                  Moves where the light source and glow emit from on the vehicle independently of the button.
+                </p>
+              </div>
+            );
+          })()}
 
           {/* Footer Actions */}
           <div className="pt-3 border-t border-[#2d3440] flex items-center justify-end gap-3">

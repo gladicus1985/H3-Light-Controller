@@ -1,41 +1,63 @@
-import React, { useState } from 'react';
-import { Power, Maximize2, Minimize2, Settings } from 'lucide-react';
+import React, { useRef } from 'react';
+import { Power, Settings, ShieldAlert } from 'lucide-react';
 
 interface MasterBarProps {
   activeCount: number;
+  isSosActive: boolean;
   onMasterAllOff: () => void;
   onMasterAllOn: () => void;
   onOpenSettings: () => void;
+  onActivateSosClick: () => void;
+  onOpenSosSettings: () => void;
 }
 
 export const MasterBar: React.FC<MasterBarProps> = ({
   activeCount,
+  isSosActive,
   onMasterAllOff,
   onMasterAllOn,
   onOpenSettings,
+  onActivateSosClick,
+  onOpenSosSettings,
 }) => {
-  const [isFullscreen, setIsFullscreen] = useState(false);
+  const timerRef = useRef<number | null>(null);
+  const isLongPress = useRef(false);
 
-  const toggleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().catch(() => {});
-      setIsFullscreen(true);
-    } else {
-      document.exitFullscreen().catch(() => {});
-      setIsFullscreen(false);
+  const handleMouseDown = () => {
+    isLongPress.current = false;
+    timerRef.current = window.setTimeout(() => {
+      isLongPress.current = true;
+      onOpenSosSettings();
+    }, 600);
+  };
+
+  const handleMouseUp = () => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    if (!isLongPress.current) {
+      onActivateSosClick();
     }
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    e.preventDefault();
+    handleMouseDown();
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    e.preventDefault();
+    handleMouseUp();
   };
 
   return (
     <header className="w-full bg-[#14171d] border-b-2 border-[#252b36] px-3 py-1.5 flex items-center justify-between gap-2 select-none sticky top-0 z-30 shadow-md">
-      {/* Brand & Vehicle Title - Simple OEM GM 2009 Headunit Header */}
+      {/* Brand & Vehicle Title */}
       <div className="flex items-center gap-2">
         <span className="text-sm font-black tracking-wider text-white uppercase font-sans">
           HUMMER H3
         </span>
       </div>
 
-      {/* Quick Controls: Settings, Fullscreen, ALL ON, ALL OFF */}
+      {/* Quick Controls: Settings, SOS, ALL ON, ALL OFF */}
       <div className="flex items-center gap-1.5">
         <button
           type="button"
@@ -48,19 +70,27 @@ export const MasterBar: React.FC<MasterBarProps> = ({
           <Settings className="w-4 h-4" />
         </button>
 
+        {/* SOS Button: Click for verification prompt, Hold for editable settings */}
         <button
           type="button"
-          id="btn-toggle-fullscreen"
-          aria-label="Toggle Fullscreen"
-          onClick={toggleFullscreen}
-          className="w-8 h-8 flex items-center justify-center rounded bg-[#1e232c] hover:bg-[#282f3a] border border-[#313a48] text-[#cbd5e1] hover:text-white transition-colors"
-          title="Fullscreen Mode"
+          id="btn-master-sos"
+          aria-label="SOS Emergency Flash"
+          onMouseDown={handleMouseDown}
+          onMouseUp={handleMouseUp}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+          className={`
+            flex items-center gap-1 px-3 py-1.5 rounded text-xs font-black uppercase tracking-wider transition-all shadow-sm active:translate-y-0.5
+            ${
+              isSosActive
+                ? 'bg-red-600 hover:bg-red-500 text-white border-2 border-red-400 animate-pulse ring-2 ring-red-500/50'
+                : 'bg-red-950/80 hover:bg-red-900 text-red-200 border border-red-800/80'
+            }
+          `}
+          title="Click to Activate SOS (Hold to Edit Settings)"
         >
-          {isFullscreen ? (
-            <Minimize2 className="w-4 h-4" />
-          ) : (
-            <Maximize2 className="w-4 h-4" />
-          )}
+          <ShieldAlert className="w-3.5 h-3.5" />
+          <span>SOS</span>
         </button>
 
         <button
@@ -94,4 +124,3 @@ export const MasterBar: React.FC<MasterBarProps> = ({
     </header>
   );
 };
-

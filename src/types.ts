@@ -19,6 +19,11 @@ export interface ChannelConfig {
     x: number; // 0 (left front) to 100 (right rear)
     y: number; // 0 (top/passenger side) to 100 (bottom/driver side)
   };
+  // Optional independent light source / emission location (percentage 0-100 relative to vehicle canvas)
+  lightPosition?: {
+    x: number;
+    y: number;
+  };
   // Beam orientation & style for lighting simulation
   beamType: 'front-throw' | 'front-spot' | 'side-flood-left' | 'side-flood-right' | 'rear-throw' | 'underglow-left' | 'underglow-right' | 'interior-front' | 'interior-rear' | 'interior-cargo' | 'ditch-left' | 'ditch-right' | 'marker-front' | 'accessory-status';
 }

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { ChannelConfig, HardwareConfig, PresetScene } from './types';
 import { DEFAULT_CHANNELS, PRESET_SCENES } from './data/defaultChannels';
 import { HummerTopDown } from './components/HummerTopDown';
@@ -12,8 +12,11 @@ import { ChannelEditModal } from './components/ChannelEditModal';
 import { HardwareSettingsModal } from './components/HardwareSettingsModal';
 import { BottomScenesBar } from './components/BottomScenesBar';
 import { SceneEditorModal } from './components/SceneEditorModal';
+import { SOSEditModal, SOSConfig } from './components/SOSEditModal';
+import { ShieldAlert } from 'lucide-react';
+import defaultVehiclePhoto from './assets/images/hummer_top_down_photo_1791094226025.jpg';
 
-const STORAGE_KEY_CHANNELS = 'hummer_h3_channels_v5';
+const STORAGE_KEY_CHANNELS = 'hummer_h3_channels_v8';
 const STORAGE_KEY_HARDWARE = 'hummer_h3_hardware_v2';
 const STORAGE_KEY_IMAGE = 'hummer_h3_custom_img_v2';
 const STORAGE_KEY_SCENES = 'hummer_h3_scenes_v2';
@@ -27,36 +30,19 @@ export default function App() {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length === 16) {
           return parsed.map((ch: ChannelConfig) => {
-            // Align Grille LED Pods (Channel 2) on Y axis with Fog Light button (x: 13)
-            if (ch.id === 2 && (ch.position.x !== 13 || ch.position.y !== 60)) {
-              return { ...ch, position: { x: 13, y: 60 } };
+            const defaultCh = DEFAULT_CHANNELS.find(d => d.id === ch.id);
+            if (ch.id === 2) {
+              return {
+                ...ch,
+                position: { x: 8, y: 50 },
+                lightPosition: { x: 8, y: 50 },
+              };
             }
-            // Center Roof Marker Pods (Channel 4) on roof just behind the pods (x: 43, y: 50)
-            if (ch.id === 4 && (ch.position.x !== 43 || ch.position.y !== 50)) {
-              return { ...ch, name: 'Amber Cab Markers (x5)', position: { x: 43, y: 50 } };
-            }
-            if (ch.id === 7 && (ch.position.x !== 22 || ch.position.y !== 23)) {
-              return { ...ch, position: { x: 22, y: 23 } };
-            }
-            if (ch.id === 8 && (ch.position.x !== 22 || ch.position.y !== 73.5)) {
-              return { ...ch, position: { x: 22, y: 73.5 } };
-            }
-            if (ch.id === 9 && (ch.name === 'Left Camp Scene' || ch.mode !== 'strobe' || ch.position.x !== 47 || ch.position.y !== 29)) {
-              return { ...ch, name: 'Left Emergency Strobes', mode: 'strobe', color: ch.color === '#FEF08A' ? '#F59E0B' : ch.color, position: { x: 47, y: 29 } };
-            }
-            if (ch.id === 10 && (ch.name === 'Right Camp Scene' || ch.mode !== 'strobe' || ch.position.x !== 47 || ch.position.y !== 71)) {
-              return { ...ch, name: 'Right Emergency Strobes', mode: 'strobe', color: ch.color === '#FEF08A' ? '#F59E0B' : ch.color, position: { x: 47, y: 71 } };
-            }
-            if (ch.id === 12 && (ch.position.x !== 73 || ch.position.y !== 50)) {
-              return { ...ch, position: { x: 73, y: 50 } };
-            }
-            if (ch.id === 13 && (ch.position.x !== 72 || ch.position.y !== 23)) {
-              return { ...ch, position: { x: 72, y: 23 } };
-            }
-            if (ch.id === 14 && (ch.position.x !== 72 || ch.position.y !== 73.5)) {
-              return { ...ch, position: { x: 72, y: 73.5 } };
-            }
-            return ch;
+            const targetPos = ch.lightPosition || defaultCh?.lightPosition || defaultCh?.position || ch.position;
+            return {
+              ...ch,
+              position: { ...targetPos },
+            };
           });
         }
       }
@@ -83,9 +69,9 @@ export default function App() {
     };
   });
 
-  // Optional custom vehicle image URL
+  // Optional custom vehicle image URL (defaulting to user-aligned Hummer H3 photo matching zHpkR.jpg)
   const [customImageUrl, setCustomImageUrl] = useState<string | null>(() => {
-    return localStorage.getItem(STORAGE_KEY_IMAGE);
+    return localStorage.getItem(STORAGE_KEY_IMAGE) || defaultVehiclePhoto;
   });
 
   // Selected channel for inspecting / editing
@@ -112,6 +98,74 @@ export default function App() {
   const [isSceneEditorOpen, setIsSceneEditorOpen] = useState(false);
   const [sceneToEdit, setSceneToEdit] = useState<PresetScene | null>(null);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+
+  // SOS state & config
+  const STORAGE_KEY_SOS = 'hummer_h3_sos_config_v1';
+  const preSosChannelsRef = useRef<ChannelConfig[] | null>(null);
+  const [isSosActive, setIsSosActive] = useState(false);
+  const [isSosVerifyOpen, setIsSosVerifyOpen] = useState(false);
+  const [isSosEditOpen, setIsSosEditOpen] = useState(false);
+  const [sosConfig, setSosConfig] = useState<SOSConfig>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_SOS);
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return {
+      speed: 200,
+      brightness: 100,
+    };
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY_SOS, JSON.stringify(sosConfig));
+    } catch {}
+  }, [sosConfig]);
+
+  const handleActivateSosClick = () => {
+    setIsSosVerifyOpen(true);
+  };
+
+  const handleConfirmSos = () => {
+    preSosChannelsRef.current = JSON.parse(JSON.stringify(channels));
+    setIsSosVerifyOpen(false);
+    setIsSosActive(true);
+    setChannels((prev) =>
+      prev.map((ch) => {
+        if (ch.isEnabled === false) return ch;
+        dispatchHardwareSignal(ch.id, true);
+        return {
+          ...ch,
+          isOn: true,
+          mode: 'strobe',
+          brightness: sosConfig.brightness,
+          strobeSpeed: sosConfig.speed,
+        };
+      })
+    );
+  };
+
+  const handleDeactivateSos = () => {
+    setIsSosActive(false);
+    if (preSosChannelsRef.current) {
+      const restored = preSosChannelsRef.current;
+      setChannels(restored);
+      restored.forEach((ch) => {
+        dispatchHardwareSignal(ch.id, ch.isOn);
+      });
+      preSosChannelsRef.current = null;
+    } else {
+      handleMasterAllOff();
+    }
+  };
+
+  const handleCancelSos = () => {
+    setIsSosVerifyOpen(false);
+  };
+
+  const handleOpenSosSettings = () => {
+    setIsSosEditOpen(true);
+  };
 
   // Sync channels to localStorage
   useEffect(() => {
@@ -197,6 +251,7 @@ export default function App() {
 
   // Master ALL OFF - Instant safety cutoff
   const handleMasterAllOff = useCallback(() => {
+    setIsSosActive(false);
     setChannels((prev) =>
       prev.map((ch) => {
         if (ch.isOn) dispatchHardwareSignal(ch.id, false);
@@ -296,9 +351,12 @@ export default function App() {
       {/* Top Cockpit Master Bar - Narrow & Simple */}
       <MasterBar
         activeCount={activeCount}
+        isSosActive={isSosActive}
         onMasterAllOff={handleMasterAllOff}
         onMasterAllOn={handleMasterAllOn}
         onOpenSettings={() => setIsSettingsModalOpen(true)}
+        onActivateSosClick={handleActivateSosClick}
+        onOpenSosSettings={handleOpenSosSettings}
       />
 
       {/* Main Kiosk Touchscreen View: Vehicle stretched to fit display with zero filler space */}
@@ -360,6 +418,62 @@ export default function App() {
         onUpdateChannels={setChannels}
         onEditChannel={(ch) => setEditingChannel(ch)}
       />
+
+      {/* SOS Edit Modal */}
+      <SOSEditModal
+        isOpen={isSosEditOpen}
+        onClose={() => setIsSosEditOpen(false)}
+        config={sosConfig}
+        onSave={setSosConfig}
+      />
+
+      {/* SOS Verification Prompt Modal */}
+      {isSosVerifyOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fadeIn">
+          <div className="w-full max-w-sm bg-[#161a22] border-2 border-red-500/50 rounded-2xl shadow-2xl p-6 text-center space-y-5">
+            <div className="w-12 h-12 rounded-2xl bg-red-500/20 border border-red-500/50 mx-auto flex items-center justify-center text-red-400">
+              <ShieldAlert className="w-6 h-6 animate-pulse" />
+            </div>
+            <div className="space-y-1.5">
+              <h3 className="text-lg font-black text-white uppercase tracking-wider">Activate SOS?</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                All 16 vehicle lighting channels will be engaged in high-intensity emergency strobe mode while retaining their individual colors.
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-3 pt-2">
+              <button
+                type="button"
+                onClick={handleCancelSos}
+                className="py-2.5 rounded-xl bg-[#222936] text-slate-300 hover:text-white text-xs font-bold uppercase tracking-wider border border-[#323d4e] transition-colors"
+              >
+                No
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmSos}
+                className="py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-black uppercase tracking-wider shadow-lg shadow-red-600/30 transition-colors"
+              >
+                Yes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Large Fixed Deactivate SOS Button Overlay */}
+      {isSosActive && (
+        <div className="fixed bottom-16 left-1/2 -translate-x-1/2 z-40">
+          <button
+            type="button"
+            id="btn-deactivate-sos-fixed"
+            onClick={handleDeactivateSos}
+            className="px-8 py-4 bg-red-600 hover:bg-red-500 text-white text-lg font-black uppercase tracking-wider rounded-2xl shadow-2xl border-4 border-red-300 flex items-center gap-3 cursor-pointer ring-4 ring-red-600/50"
+          >
+            <ShieldAlert className="w-7 h-7" />
+            <span>DEACTIVATE SOS</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 }

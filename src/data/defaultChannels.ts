@@ -7,11 +7,12 @@ export const DEFAULT_CHANNELS: ChannelConfig[] = [
     category: 'exterior-front',
     isOn: false,
     color: '#38BDF8', // Ice White / Crisp Blue
-    brightness: 100,
+    brightness: 40,
     mode: 'toggle',
     iconName: 'SunMedium',
     ampDraw: 18.5,
     position: { x: 31, y: 50 }, // Centered on roof brow
+    lightPosition: { x: 31, y: 50 },
     beamType: 'front-throw',
   },
   {
@@ -20,11 +21,12 @@ export const DEFAULT_CHANNELS: ChannelConfig[] = [
     category: 'exterior-front',
     isOn: false,
     color: '#F8FAFC', // Pure Xenon White
-    brightness: 100,
+    brightness: 40,
     mode: 'toggle',
     iconName: 'Zap',
     ampDraw: 8.0,
-    position: { x: 13, y: 60 }, // Aligned on Y axis with front fog light button (x: 13)
+    position: { x: 8, y: 50 }, // Moved backwards 7% (from 1% to 8%)
+    lightPosition: { x: 8, y: 50 },
     beamType: 'front-spot',
   },
   {
@@ -33,11 +35,12 @@ export const DEFAULT_CHANNELS: ChannelConfig[] = [
     category: 'exterior-front',
     isOn: false,
     color: '#FBBF24', // Amber Fog
-    brightness: 90,
+    brightness: 40,
     mode: 'toggle',
     iconName: 'Eye',
     ampDraw: 4.5,
     position: { x: 13, y: 32 }, // Front lower bumper fog
+    lightPosition: { x: 13, y: 32 },
     beamType: 'front-spot',
   },
   {
@@ -46,91 +49,96 @@ export const DEFAULT_CHANNELS: ChannelConfig[] = [
     category: 'exterior-front',
     isOn: false,
     color: '#F59E0B', // Amber
-    brightness: 90,
+    brightness: 40,
     mode: 'toggle',
     iconName: 'ShieldAlert',
     ampDraw: 1.5,
     position: { x: 43, y: 50 }, // Centered on roof just behind amber cab marker pods
+    lightPosition: { x: 43, y: 50 },
     beamType: 'marker-front',
   },
   {
     id: 5,
-    name: 'Left Ditch Light',
+    name: 'Passenger Ditch Light',
     category: 'exterior-side',
     isOn: false,
     color: '#F8FAFC',
-    brightness: 100,
+    brightness: 40,
     mode: 'toggle',
     iconName: 'Compass',
     ampDraw: 4.0,
     position: { x: 32, y: 19 }, // Left A-pillar cowl ditch light
+    lightPosition: { x: 32, y: 19 },
     beamType: 'ditch-left',
   },
   {
     id: 6,
-    name: 'Right Ditch Light',
+    name: 'Driver Ditch Light',
     category: 'exterior-side',
     isOn: false,
     color: '#F8FAFC',
-    brightness: 100,
+    brightness: 40,
     mode: 'toggle',
     iconName: 'Compass',
     ampDraw: 4.0,
     position: { x: 32, y: 81 }, // Right A-pillar cowl ditch light
+    lightPosition: { x: 32, y: 81 },
     beamType: 'ditch-right',
   },
   {
     id: 7,
-    name: 'Left Rock Lights (Front)',
+    name: 'Passenger Rock Lights (Front)',
     category: 'exterior-side',
     isOn: false,
     color: '#38BDF8', // Cyan underglow
-    brightness: 90,
+    brightness: 40,
     mode: 'toggle',
     iconName: 'Sparkles',
     ampDraw: 3.2,
     position: { x: 22, y: 23 }, // Right on Front Left Wheel
+    lightPosition: { x: 22, y: 20 },
     beamType: 'underglow-left',
   },
   {
     id: 8,
-    name: 'Right Rock Lights (Front)',
+    name: 'Driver Rock Lights (Front)',
     category: 'exterior-side',
     isOn: false,
     color: '#38BDF8', // Cyan underglow
-    brightness: 90,
+    brightness: 40,
     mode: 'toggle',
     iconName: 'Sparkles',
     ampDraw: 3.2,
     position: { x: 22, y: 73.5 }, // Snug to Front Right Wheel Well
+    lightPosition: { x: 22, y: 78 },
     beamType: 'underglow-right',
   },
   {
     id: 9,
-    name: 'Left Emergency Strobes',
+    name: 'Rocker Panel Lights (Passenger)',
     category: 'exterior-side',
     isOn: false,
-    color: '#F59E0B', // Amber Emergency Strobe
-    brightness: 100,
-    mode: 'strobe',
-    strobeSpeed: 200,
-    iconName: 'ShieldAlert',
+    color: '#F8FAFC', // White
+    brightness: 40,
+    mode: 'toggle',
+    iconName: 'Dome',
     ampDraw: 4.0,
-    position: { x: 47, y: 29 }, // Driver side emergency perimeter strobe (matching Ch 10)
+    position: { x: 47, y: 29 },
+    lightPosition: { x: 47, y: 21 },
     beamType: 'side-flood-left',
   },
   {
     id: 10,
-    name: 'Right Emergency Strobes',
+    name: 'Rocker Panel Lights (Driver)',
     category: 'exterior-side',
     isOn: false,
-    color: '#F59E0B', // Amber Emergency Strobe
-    brightness: 100,
-    mode: 'strobe',
-    strobeSpeed: 200,
-    iconName: 'ShieldAlert',
+    color: '#F8FAFC', // White
+    brightness: 40,
+    mode: 'toggle',
+    iconName: 'Dome',
     ampDraw: 4.0,
-    position: { x: 47, y: 71 }, // Passenger side emergency perimeter strobe (up and left directly on vehicle)
+    position: { x: 47, y: 71 }, // Passenger side rocker panel lights
+    lightPosition: { x: 47, y: 79 },
     beamType: 'side-flood-right',
   },
   {
@@ -139,12 +147,12 @@ export const DEFAULT_CHANNELS: ChannelConfig[] = [
     category: 'exterior-rear',
     isOn: false,
     color: '#EF4444', // Red / Amber Chase
-    brightness: 100,
+    brightness: 40,
     mode: 'toggle',
-    strobeSpeed: 250,
     iconName: 'Flame',
     ampDraw: 3.0,
     position: { x: 79, y: 50 }, // Upper rear roof wing / chase bar
+    lightPosition: { x: 79, y: 50 },
     beamType: 'rear-throw',
   },
   {
@@ -153,37 +161,40 @@ export const DEFAULT_CHANNELS: ChannelConfig[] = [
     category: 'exterior-rear',
     isOn: false,
     color: '#F8FAFC', // Ultra White
-    brightness: 100,
+    brightness: 40,
     mode: 'toggle',
     iconName: 'Radio',
     ampDraw: 6.0,
     position: { x: 73, y: 50 }, // Rear roof rack crossbar
+    lightPosition: { x: 73, y: 50 },
     beamType: 'rear-throw',
   },
   {
     id: 13,
-    name: 'Left Rock Lights (Rear)',
+    name: 'Passenger Rock Lights (Rear)',
     category: 'exterior-side',
     isOn: false,
     color: '#38BDF8', // Cyan underglow
-    brightness: 85,
+    brightness: 40,
     mode: 'toggle',
     iconName: 'Sparkles',
     ampDraw: 3.2,
     position: { x: 72, y: 23 }, // Right on Rear Left Wheel
+    lightPosition: { x: 77, y: 20 },
     beamType: 'underglow-left',
   },
   {
     id: 14,
-    name: 'Right Rock Lights (Rear)',
+    name: 'Driver Rock Lights (Rear)',
     category: 'exterior-side',
     isOn: false,
     color: '#38BDF8', // Cyan underglow
-    brightness: 85,
+    brightness: 40,
     mode: 'toggle',
     iconName: 'Sparkles',
     ampDraw: 3.2,
     position: { x: 72, y: 73.5 }, // Snug to Rear Right Wheel Well
+    lightPosition: { x: 72, y: 78 },
     beamType: 'underglow-right',
   },
   {
@@ -192,24 +203,26 @@ export const DEFAULT_CHANNELS: ChannelConfig[] = [
     category: 'exterior-rear',
     isOn: false,
     color: '#FDE047', // Warm Work Light
-    brightness: 90,
+    brightness: 40,
     mode: 'toggle',
     iconName: 'Box',
     ampDraw: 2.0,
     position: { x: 82, y: 28 }, // Left rear corner flood
+    lightPosition: { x: 82, y: 28 },
     beamType: 'interior-cargo',
   },
   {
     id: 16,
-    name: 'Rear Corner Scene (Right)',
+    name: 'Rear Corner Scene (Driver)',
     category: 'exterior-rear',
     isOn: false,
     color: '#FDE047', // Warm Work Light
-    brightness: 90,
+    brightness: 40,
     mode: 'toggle',
     iconName: 'Box',
     ampDraw: 2.0,
     position: { x: 82, y: 72 }, // Right rear corner flood
+    lightPosition: { x: 82, y: 72 },
     beamType: 'accessory-status',
   },
 ];

@@ -22,8 +22,7 @@ export const BottomScenesBar: React.FC<BottomScenesBarProps> = ({
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-2">
         {/* Left Label */}
         <div className="hidden sm:flex items-center gap-2 pr-2 border-r border-[#262c37] flex-shrink-0">
-          <span className="text-[11px] font-black uppercase tracking-widest text-[#8490a0]">
-            SCENES
+          <span className="text-[12px] font-black uppercase tracking-widest text-[#8490a0]">
           </span>
         </div>
 
@@ -49,7 +48,7 @@ export const BottomScenesBar: React.FC<BottomScenesBarProps> = ({
                   type="button"
                   id={`bottom-scene-${scene.id}`}
                   onClick={() => onApplyScene(scene.id)}
-                  className="flex items-center gap-2 px-3.5 py-2 text-xs font-black uppercase tracking-wider text-[#e2e8f0] hover:text-white transition-colors"
+                  className="flex items-center gap-1 px-3.5 py-2 text-xs font-black uppercase tracking-wider text-[#e2e8f0] hover:text-white transition-colors"
                   title={scene.description || scene.name}
                 >
                   <span

@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useRef } from 'react';
 import { ChannelConfig } from '../types';
+import { DEFAULT_CHANNELS } from '../data/defaultChannels';
 import * as LucideIcons from 'lucide-react';
 
 interface VehicleHotspotProps {
@@ -181,13 +182,47 @@ export const HummerTopDown: React.FC<HummerTopDownProps> = ({
   const rearCornerLeft = channelMap.get(15);
   const rearCornerRight = channelMap.get(16);
 
-  // 5 Amber Cab Marker lights positioned on the vehicle's metal roof panel in front of sunroof
+  const getLightOffset = (ch?: ChannelConfig, defaultX = 50, defaultY = 50) => {
+    if (!ch) return { dx: 0, dy: 0 };
+    const defaultCh = DEFAULT_CHANNELS.find(d => d.id === ch.id);
+    const defX = defaultCh?.position.x ?? defaultX;
+    const defY = defaultCh?.position.y ?? defaultY;
+    const lp = ch.lightPosition || { x: defX, y: defY };
+    const targetX = (lp.x / 100) * 1000;
+    const targetY = (lp.y / 100) * 560;
+    const baseCenterX = (defX / 100) * 1000;
+    const baseCenterY = (defY / 100) * 560;
+    return {
+      dx: targetX - baseCenterX,
+      dy: targetY - baseCenterY,
+    };
+  };
+
+  const lbOffset = getLightOffset(lightbar, 31, 50);
+  const grilleOffset = getLightOffset(grillePods, 8, 50);
+  const fogsOffset = getLightOffset(fogs, 13, 32);
+  const markersOffset = getLightOffset(markers, 43, 50);
+  const markerDx = markersOffset.dx;
+  const markerDy = markersOffset.dy;
+  const ditchLOffset = getLightOffset(ditchLeft, 32, 19);
+  const ditchROffset = getLightOffset(ditchRight, 32, 81);
+  const rockFlOffset = getLightOffset(rockFrontLeft, 22, 23);
+  const rockFrOffset = getLightOffset(rockFrontRight, 22, 73.5);
+  const campLOffset = getLightOffset(campLeft, 47, 29);
+  const campROffset = getLightOffset(campRight, 47, 71);
+  const rearChaseOffset = getLightOffset(rearChase, 79, 50);
+  const rearBackupOffset = getLightOffset(rearBackup, 73, 50);
+  const rockRlOffset = getLightOffset(rockRearLeft, 72, 23);
+  const rockRrOffset = getLightOffset(rockRearRight, 72, 73.5);
+  const rearCornerLOffset = getLightOffset(rearCornerLeft, 82, 28);
+  const rearCornerROffset = getLightOffset(rearCornerRight, 82, 72);
+
   const CAB_MARKER_PODS = [
-    { x: 372, y: 218, cx: 378 },
-    { x: 375, y: 249, cx: 381 },
-    { x: 377, y: 280, cx: 383 },
-    { x: 375, y: 311, cx: 381 },
-    { x: 372, y: 342, cx: 378 },
+    { x: 350 + markerDx, y: 200 + markerDy, cx: 356 + markerDx },
+    { x: 352 + markerDx, y: 240 + markerDy, cx: 358 + markerDx },
+    { x: 354 + markerDx, y: 280 + markerDy, cx: 360 + markerDx },
+    { x: 352 + markerDx, y: 320 + markerDy, cx: 358 + markerDx },
+    { x: 350 + markerDx, y: 360 + markerDy, cx: 356 + markerDx },
   ] as const;
 
   // Helper to compute visual illustration properties based on channel state, brightness and strobe mode
@@ -226,12 +261,12 @@ export const HummerTopDown: React.FC<HummerTopDownProps> = ({
   const isLeftStrobe = Boolean(
     campLeft?.isOn &&
     campLeft.isEnabled !== false &&
-    (campLeft.mode === 'strobe' || campLeft.name.toLowerCase().includes('strobe'))
+    campLeft.mode === 'strobe'
   );
   const isRightStrobe = Boolean(
     campRight?.isOn &&
     campRight.isEnabled !== false &&
-    (campRight.mode === 'strobe' || campRight.name.toLowerCase().includes('strobe'))
+    campRight.mode === 'strobe'
   );
 
   return (
@@ -462,7 +497,7 @@ export const HummerTopDown: React.FC<HummerTopDownProps> = ({
           {/* Rock Lights: Positioned right on each of the four wheels with light casting OUT of the wheels */}
           {/* 1. Front Left Wheel Rock Light (Ch 7) */}
           {rockFlProps.isVisible && (
-            <g id="rock-light-fl" opacity={rockFlProps.opacity}>
+            <g id="rock-light-fl" opacity={rockFlProps.opacity} transform={`translate(${rockFlOffset.dx}, ${rockFlOffset.dy})`}>
               <g style={rockFlProps.isStrobing ? { animation: `lightStrobeFlash ${rockFlProps.strobeDuration} infinite` } : undefined}>
                 {/* Lateral beam shooting out of wheel toward outer road */}
                 <polygon
@@ -472,15 +507,13 @@ export const HummerTopDown: React.FC<HummerTopDownProps> = ({
                 />
                 <ellipse cx="222" cy="120" rx="95" ry="58" fill="url(#rock-fl-glow)" />
                 <ellipse cx="222" cy="120" rx="45" ry="26" fill={rockFrontLeft?.color || '#38BDF8'} opacity="0.7" />
-                <circle cx="222" cy="120" r="14" fill={rockFrontLeft?.color || '#38BDF8'} />
-                <circle cx="222" cy="120" r="7" fill="#FFFFFF" />
               </g>
             </g>
           )}
 
           {/* 2. Front Right Wheel Rock Light (Ch 8 - Touching Wheel Well) */}
           {rockFrProps.isVisible && (
-            <g id="rock-light-fr" opacity={rockFrProps.opacity}>
+            <g id="rock-light-fr" opacity={rockFrProps.opacity} transform={`translate(${rockFrOffset.dx}, ${rockFrOffset.dy})`}>
               <g style={rockFrProps.isStrobing ? { animation: `lightStrobeFlash ${rockFrProps.strobeDuration} infinite` } : undefined}>
                 {/* Lateral beam coming directly from touching the wheel well arch outward onto road */}
                 <polygon
@@ -490,15 +523,13 @@ export const HummerTopDown: React.FC<HummerTopDownProps> = ({
                 />
                 <ellipse cx="222" cy="416" rx="95" ry="58" fill="url(#rock-fr-glow)" />
                 <ellipse cx="222" cy="416" rx="45" ry="26" fill={rockFrontRight?.color || '#38BDF8'} opacity="0.7" />
-                <circle cx="222" cy="416" r="14" fill={rockFrontRight?.color || '#38BDF8'} />
-                <circle cx="222" cy="416" r="7" fill="#FFFFFF" />
               </g>
             </g>
           )}
 
           {/* 3. Rear Left Wheel Rock Light (Ch 13) */}
           {rockRlProps.isVisible && (
-            <g id="rock-light-rl" opacity={rockRlProps.opacity}>
+            <g id="rock-light-rl" opacity={rockRlProps.opacity} transform={`translate(${rockRlOffset.dx}, ${rockRlOffset.dy})`}>
               <g style={rockRlProps.isStrobing ? { animation: `lightStrobeFlash ${rockRlProps.strobeDuration} infinite` } : undefined}>
                 {/* Lateral beam shooting out of wheel toward outer road */}
                 <polygon
@@ -508,15 +539,13 @@ export const HummerTopDown: React.FC<HummerTopDownProps> = ({
                 />
                 <ellipse cx="718" cy="120" rx="95" ry="58" fill="url(#rock-rl-glow)" />
                 <ellipse cx="718" cy="120" rx="45" ry="26" fill={rockRearLeft?.color || '#38BDF8'} opacity="0.7" />
-                <circle cx="718" cy="120" r="14" fill={rockRearLeft?.color || '#38BDF8'} />
-                <circle cx="718" cy="120" r="7" fill="#FFFFFF" />
               </g>
             </g>
           )}
 
           {/* 4. Rear Right Wheel Rock Light (Ch 14 - Touching Wheel Well) */}
           {rockRrProps.isVisible && (
-            <g id="rock-light-rr" opacity={rockRrProps.opacity}>
+            <g id="rock-light-rr" opacity={rockRrProps.opacity} transform={`translate(${rockRrOffset.dx}, ${rockRrOffset.dy})`}>
               <g style={rockRrProps.isStrobing ? { animation: `lightStrobeFlash ${rockRrProps.strobeDuration} infinite` } : undefined}>
                 {/* Lateral beam coming directly from touching the wheel well arch outward onto road */}
                 <polygon
@@ -526,8 +555,6 @@ export const HummerTopDown: React.FC<HummerTopDownProps> = ({
                 />
                 <ellipse cx="718" cy="416" rx="95" ry="58" fill="url(#rock-rr-glow)" />
                 <ellipse cx="718" cy="416" rx="45" ry="26" fill={rockRearRight?.color || '#38BDF8'} opacity="0.7" />
-                <circle cx="718" cy="416" r="14" fill={rockRearRight?.color || '#38BDF8'} />
-                <circle cx="718" cy="416" r="7" fill="#FFFFFF" />
               </g>
             </g>
           )}
@@ -585,7 +612,7 @@ export const HummerTopDown: React.FC<HummerTopDownProps> = ({
               <rect x="108" y="240" width="10" height="15" rx="3" fill="#333a42" />
               <rect x="108" y="305" width="10" height="15" rx="3" fill="#333a42" />
 
-              {/* Main Hummer H3 Body Outline (Pewter Metallic) */}
+              {/* Main Hummer H3 Body Outline (Pewter Metallic) - Streamlined flush rear without spare tire carrier */}
               <path
                 d="
                   M 130 180
@@ -597,8 +624,6 @@ export const HummerTopDown: React.FC<HummerTopDownProps> = ({
                   L 680 140
                   L 775 140
                   L 795 165
-                  L 815 175
-                  L 815 385
                   L 795 395
                   L 775 420
                   L 680 420
@@ -716,8 +741,8 @@ export const HummerTopDown: React.FC<HummerTopDownProps> = ({
 
               {/* Black Roof Rack System */}
               {/* Left & Right Longitudinal Side Rails */}
-              <rect x="365" y="190" width="440" height="14" rx="4" fill="#15181c" stroke="#2a3038" strokeWidth="1.5" />
-              <rect x="365" y="356" width="440" height="14" rx="4" fill="#15181c" stroke="#2a3038" strokeWidth="1.5" />
+              <rect x="365" y="190" width="420" height="14" rx="4" fill="#15181c" stroke="#2a3038" strokeWidth="1.5" />
+              <rect x="365" y="356" width="420" height="14" rx="4" fill="#15181c" stroke="#2a3038" strokeWidth="1.5" />
               
               {/* Crossbar 1 (Behind Sunroof) */}
               <rect x="518" y="184" width="18" height="192" rx="3" fill="#1e2228" stroke="#333942" strokeWidth="1.5" />
@@ -731,7 +756,7 @@ export const HummerTopDown: React.FC<HummerTopDownProps> = ({
                   {/* Forward amber ambient wash when activated */}
                   {markersProps.isVisible && (
                     <polygon
-                      points="380,200 380,360 290,375 290,185"
+                      points={`${380 + markerDx},${200 + markerDy} ${380 + markerDx},${360 + markerDy} ${290 + markerDx},${375 + markerDy} ${290 + markerDx},${185 + markerDy}`}
                       fill="url(#cab-marker-wash)"
                       opacity="0.8"
                     />
@@ -802,20 +827,9 @@ export const HummerTopDown: React.FC<HummerTopDownProps> = ({
                 strokeLinecap="round"
               />
 
-              {/* Rear Tailgate Assembly */}
-              <path
-                d="M 808 185 L 818 190 L 818 370 L 808 375 Z"
-                fill="#544f47"
-                stroke="#3e3933"
-                strokeWidth="1.5"
-              />
-              {/* Rear Door Hinges */}
-              <rect x="814" y="205" width="6" height="18" rx="2" fill="#1e2228" />
-              <rect x="814" y="337" width="6" height="18" rx="2" fill="#1e2228" />
-
-              {/* Tail Lights */}
-              <rect x="806" y="180" width="10" height="24" rx="2" fill="#b91c1c" stroke="#7f1d1d" strokeWidth="1" />
-              <rect x="806" y="356" width="10" height="24" rx="2" fill="#b91c1c" stroke="#7f1d1d" strokeWidth="1" />
+              {/* Flush Rear Tail Lights */}
+              <rect x="793" y="175" width="8" height="26" rx="2" fill="#b91c1c" stroke="#7f1d1d" strokeWidth="1" />
+              <rect x="793" y="359" width="8" height="26" rx="2" fill="#b91c1c" stroke="#7f1d1d" strokeWidth="1" />
 
           
               
@@ -828,7 +842,7 @@ export const HummerTopDown: React.FC<HummerTopDownProps> = ({
 
           {/* Front Lightbar Massive Forward Throw (Exiting roof brow forward across hood onto road) */}
           {lightbarProps.isVisible && (
-            <g id="front-lightbar-throw" opacity={lightbarProps.opacity}>
+            <g id="front-lightbar-throw" opacity={lightbarProps.opacity} transform={`translate(${lbOffset.dx}, ${lbOffset.dy})`}>
               <g style={lightbarProps.isStrobing ? { animation: `lightStrobeFlash ${lightbarProps.strobeDuration} infinite` } : undefined}>
                 <polygon
                   points="315,185 315,375 0,550 0,10"
@@ -848,66 +862,59 @@ export const HummerTopDown: React.FC<HummerTopDownProps> = ({
 
           {/* Front Grille Spot Pods (Exiting center chrome grille forward) */}
           {grilleProps.isVisible && (
-            <g id="front-grille-beam" opacity={grilleProps.opacity}>
+            <g id="front-grille-beam" opacity={grilleProps.opacity} transform={`translate(${grilleOffset.dx}, ${grilleOffset.dy})`}>
               <g style={grilleProps.isStrobing ? { animation: `lightStrobeFlash ${grilleProps.strobeDuration} infinite` } : undefined}>
                 <polygon
-                  points="140,240 140,320 0,400 0,160"
+                  points="80,240 80,320 -20,390 -20,170"
                   fill="url(#grille-beam)"
                   opacity="0.85"
                 />
                 <polygon
-                  points="140,260 140,300 0,340 0,220"
+                  points="80,260 80,300 -20,330 -20,230"
                   fill="url(#grille-beam)"
                   opacity="0.98"
                 />
-                {/* Lens face focal hotspots */}
-                <circle cx="140" cy="265" r="9" fill={grillePods?.color || '#FFFFFF'} />
-                <circle cx="140" cy="265" r="5" fill="#FFFFFF" />
-                <circle cx="140" cy="295" r="9" fill={grillePods?.color || '#FFFFFF'} />
-                <circle cx="140" cy="295" r="5" fill="#FFFFFF" />
               </g>
             </g>
           )}
 
           {/* Front Fog Lamps - High-intensity beams projecting directly outward from the front bumper */}
           {fogsProps.isVisible && (
-            <g id="front-fogs-group" opacity={fogsProps.opacity}>
+            <g id="front-fogs-group" opacity={fogsProps.opacity} transform={`translate(${fogsOffset.dx}, ${fogsOffset.dy})`}>
               <g style={fogsProps.isStrobing ? { animation: `lightStrobeFlash ${fogsProps.strobeDuration} infinite` } : undefined}>
                 <g id="front-fog-driver">
                   {/* Wide forward projection cone exiting driver fog lamp */}
                   <polygon
-                    points="135,188 135,202 0,330 0,60"
+                    points="135,140 135,154 0,282 0,12"
                     fill="url(#fog-beam-driver)"
                   />
                   {/* Intense focused core beam */}
                   <polygon
-                    points="135,192 135,198 0,260 0,130"
+                    points="135,144 135,150 0,212 0,82"
                     fill="url(#fog-beam-driver)"
                     opacity="0.92"
                   />
                   {/* Lens face hot spot at front bumper */}
-                  <ellipse cx="135" cy="195" rx="16" ry="11" fill={fogs?.color || '#FBBF24'} />
-                  <circle cx="135" cy="195" r="7" fill="#FFFFFF" />
+                  <ellipse cx="135" cy="147" rx="16" ry="11" fill={fogs?.color || '#FBBF24'} />
                   {/* Ground road pool in front of vehicle */}
-                  <ellipse cx="45" cy="195" rx="75" ry="40" fill="url(#fog-beam-driver)" opacity="0.65" />
+                  <ellipse cx="45" cy="147" rx="75" ry="40" fill="url(#fog-beam-driver)" opacity="0.65" />
                 </g>
                 <g id="front-fog-passenger">
                   {/* Wide forward projection cone exiting passenger fog lamp */}
                   <polygon
-                    points="135,358 135,372 0,500 0,230"
+                    points="135,406 135,420 0,548 0,278"
                     fill="url(#fog-beam-passenger)"
                   />
                   {/* Intense focused core beam */}
                   <polygon
-                    points="135,362 135,368 0,430 0,300"
+                    points="135,410 135,416 0,478 0,348"
                     fill="url(#fog-beam-passenger)"
                     opacity="0.92"
                   />
                   {/* Lens face hot spot at front bumper */}
-                  <ellipse cx="135" cy="365" rx="16" ry="11" fill={fogs?.color || '#FBBF24'} />
-                  <circle cx="135" cy="365" r="7" fill="#FFFFFF" />
+                  <ellipse cx="135" cy="413" rx="16" ry="11" fill={fogs?.color || '#FBBF24'} />
                   {/* Ground road pool in front of vehicle */}
-                  <ellipse cx="45" cy="365" rx="75" ry="40" fill="url(#fog-beam-passenger)" opacity="0.65" />
+                  <ellipse cx="45" cy="413" rx="75" ry="40" fill="url(#fog-beam-passenger)" opacity="0.65" />
                 </g>
               </g>
             </g>
@@ -915,33 +922,29 @@ export const HummerTopDown: React.FC<HummerTopDownProps> = ({
 
           {/* Ditch Lights (Exiting 45 degrees outward from cowl mirrors) */}
           {ditchLeftProps.isVisible && (
-            <g id="ditch-left" opacity={ditchLeftProps.opacity}>
+            <g id="ditch-left" opacity={ditchLeftProps.opacity} transform={`translate(${ditchLOffset.dx}, ${ditchLOffset.dy})`}>
               <g style={ditchLeftProps.isStrobing ? { animation: `lightStrobeFlash ${ditchLeftProps.strobeDuration} infinite` } : undefined}>
                 <polygon
                   points="335,138 315,122 0,-30 180,-30"
                   fill="url(#ditch-beam-left)"
                 />
-                <circle cx="335" cy="138" r="9" fill={ditchLeft?.color || '#FFFFFF'} />
-                <circle cx="335" cy="138" r="5" fill="#FFFFFF" />
               </g>
             </g>
           )}
           {ditchRightProps.isVisible && (
-            <g id="ditch-right" opacity={ditchRightProps.opacity}>
+            <g id="ditch-right" opacity={ditchRightProps.opacity} transform={`translate(${ditchROffset.dx}, ${ditchROffset.dy})`}>
               <g style={ditchRightProps.isStrobing ? { animation: `lightStrobeFlash ${ditchRightProps.strobeDuration} infinite` } : undefined}>
                 <polygon
                   points="335,422 315,438 0,590 180,590"
                   fill="url(#ditch-beam-right)"
                 />
-                <circle cx="335" cy="422" r="9" fill={ditchRight?.color || '#FFFFFF'} />
-                <circle cx="335" cy="422" r="5" fill="#FFFFFF" />
               </g>
             </g>
           )}
 
           {/* Side Emergency Strobes / Scene Flood Beams */}
           {campLeftProps.isVisible && (
-            <g id="side-left-beam" opacity={campLeftProps.opacity} className={isLeftStrobe ? 'emergency-strobe-left' : ''}>
+            <g id="side-left-beam" opacity={campLeftProps.opacity} className={isLeftStrobe ? 'emergency-strobe-left' : ''} transform={`translate(${campLOffset.dx}, ${campLOffset.dy})`}>
               <polygon
                 points="400,162 680,162 830,-20 250,-20"
                 fill="url(#camp-beam-left)"
@@ -953,7 +956,6 @@ export const HummerTopDown: React.FC<HummerTopDownProps> = ({
                     <g key={idx}>
                       <ellipse cx={xPos} cy="158" rx="14" ry="7" fill={campLeft?.color || '#F59E0B'} opacity="0.85" />
                       <rect x={xPos - 7} y="154" width="14" height="8" rx="2" fill="#FFFFFF" stroke={campLeft?.color || '#F59E0B'} strokeWidth="1.5" />
-                      <circle cx={xPos} cy="158" r="2.5" fill="#FFFFFF" />
                     </g>
                   ))}
                 </g>
@@ -961,7 +963,7 @@ export const HummerTopDown: React.FC<HummerTopDownProps> = ({
             </g>
           )}
           {campRightProps.isVisible && (
-            <g id="side-right-beam" opacity={campRightProps.opacity} className={isRightStrobe ? 'emergency-strobe-right' : ''}>
+            <g id="side-right-beam" opacity={campRightProps.opacity} className={isRightStrobe ? 'emergency-strobe-right' : ''} transform={`translate(${campROffset.dx}, ${campROffset.dy})`}>
               <polygon
                 points="400,398 680,398 830,580 250,580"
                 fill="url(#camp-beam-right)"
@@ -973,7 +975,6 @@ export const HummerTopDown: React.FC<HummerTopDownProps> = ({
                     <g key={idx}>
                       <ellipse cx={xPos} cy="402" rx="14" ry="7" fill={campRight?.color || '#F59E0B'} opacity="0.85" />
                       <rect x={xPos - 7} y="398" width="14" height="8" rx="2" fill="#FFFFFF" stroke={campRight?.color || '#F59E0B'} strokeWidth="1.5" />
-                      <circle cx={xPos} cy="402" r="2.5" fill="#FFFFFF" />
                     </g>
                   ))}
                 </g>
@@ -983,7 +984,7 @@ export const HummerTopDown: React.FC<HummerTopDownProps> = ({
 
           {/* Rear Backup / Reverse Floods (Mounted on Rear Roof Rack Bar, projecting backward) */}
           {rearBackupProps.isVisible && (
-            <g id="rear-backup-beam" opacity={rearBackupProps.opacity}>
+            <g id="rear-backup-beam" opacity={rearBackupProps.opacity} transform={`translate(${rearBackupOffset.dx}, ${rearBackupOffset.dy})`}>
               <g style={rearBackupProps.isStrobing ? { animation: `lightStrobeFlash ${rearBackupProps.strobeDuration} infinite` } : undefined}>
                 {/* Wide flood dispersion cone originating from rear roof rack crossbar */}
                 <polygon
@@ -999,20 +1000,19 @@ export const HummerTopDown: React.FC<HummerTopDownProps> = ({
                 {/* High-output flood pods mounted directly on the rear roof rack crossbar */}
                 <rect x="734" y="235" width="6" height="90" rx="2" fill="#FFFFFF" stroke={rearBackup?.color || '#FFFFFF'} strokeWidth="1" />
                 <ellipse cx="737" cy="280" rx="10" ry="46" fill={rearBackup?.color || '#FFFFFF'} opacity="0.85" />
-                <circle cx="737" cy="280" r="5" fill="#FFFFFF" />
               </g>
             </g>
           )}
 
           {/* Rear Dust / Chase Light Bar */}
           {rearChaseProps.isVisible && (
-            <g id="rear-chase-beam" opacity={rearChaseProps.opacity}>
+            <g id="rear-chase-beam" opacity={rearChaseProps.opacity} transform={`translate(${rearChaseOffset.dx}, ${rearChaseOffset.dy})`}>
               <g style={rearChaseProps.isStrobing ? { animation: `lightStrobeFlash ${rearChaseProps.strobeDuration} infinite` } : undefined}>
                 <polygon
-                  points="805,240 805,320 1000,410 1000,150"
+                  points="795,240 795,320 1000,410 1000,150"
                   fill="url(#rear-chase)"
                 />
-                <rect x="803" y="245" width="6" height="70" rx="2" fill={rearChase?.color || '#EF4444'} />
+                <rect x="793" y="245" width="6" height="70" rx="2" fill={rearChase?.color || '#EF4444'} />
               </g>
             </g>
           )}
@@ -1020,52 +1020,44 @@ export const HummerTopDown: React.FC<HummerTopDownProps> = ({
           {/* Rock Lights Wheel Illumination Overlay: Light bursting directly OUT of the wheels */}
           {/* 1. Front Left Wheel (White beam lines removed) */}
           {rockFlProps.isVisible && (
-            <g id="rock-overlay-fl" opacity={rockFlProps.opacity}>
+            <g id="rock-overlay-fl" opacity={rockFlProps.opacity} transform={`translate(${rockFlOffset.dx}, ${rockFlOffset.dy})`}>
               <g style={rockFlProps.isStrobing ? { animation: `lightStrobeFlash ${rockFlProps.strobeDuration} infinite` } : undefined}>
                 {/* Intense light cone shooting OUTWARD through the wheel rim onto the road */}
                 <polygon points="175,120 270,120 310,35 135,35" fill="url(#rock-fl-outward)" opacity="0.95" />
                 <ellipse cx="222" cy="115" rx="46" ry="24" fill="url(#rock-fl-glow)" opacity="0.95" />
-                <circle cx="222" cy="115" r="11" fill={rockFrontLeft?.color || '#38BDF8'} />
-                <circle cx="222" cy="115" r="6" fill="#FFFFFF" />
               </g>
             </g>
           )}
 
           {/* 2. Front Right Wheel (Touching Wheel Well, White beam lines removed) */}
           {rockFrProps.isVisible && (
-            <g id="rock-overlay-fr" opacity={rockFrProps.opacity}>
+            <g id="rock-overlay-fr" opacity={rockFrProps.opacity} transform={`translate(${rockFrOffset.dx}, ${rockFrOffset.dy})`}>
               <g style={rockFrProps.isStrobing ? { animation: `lightStrobeFlash ${rockFrProps.strobeDuration} infinite` } : undefined}>
                 {/* Intense light cone shooting OUTWARD directly from touching the wheel well */}
                 <polygon points="175,412 270,412 310,525 135,525" fill="url(#rock-fr-outward)" opacity="0.95" />
                 <ellipse cx="222" cy="416" rx="46" ry="24" fill="url(#rock-fr-glow)" opacity="0.95" />
-                <circle cx="222" cy="416" r="11" fill={rockFrontRight?.color || '#38BDF8'} />
-                <circle cx="222" cy="416" r="6" fill="#FFFFFF" />
               </g>
             </g>
           )}
 
           {/* 3. Rear Left Wheel (White beam lines removed) */}
           {rockRlProps.isVisible && (
-            <g id="rock-overlay-rl" opacity={rockRlProps.opacity}>
+            <g id="rock-overlay-rl" opacity={rockRlProps.opacity} transform={`translate(${rockRlOffset.dx}, ${rockRlOffset.dy})`}>
               <g style={rockRlProps.isStrobing ? { animation: `lightStrobeFlash ${rockRlProps.strobeDuration} infinite` } : undefined}>
                 {/* Intense light cone shooting OUTWARD through the wheel rim onto the road */}
                 <polygon points="670,120 765,120 805,35 630,35" fill="url(#rock-rl-outward)" opacity="0.95" />
                 <ellipse cx="718" cy="115" rx="46" ry="24" fill="url(#rock-rl-glow)" opacity="0.95" />
-                <circle cx="718" cy="115" r="11" fill={rockRearLeft?.color || '#38BDF8'} />
-                <circle cx="718" cy="115" r="6" fill="#FFFFFF" />
               </g>
             </g>
           )}
 
           {/* 4. Rear Right Wheel (Touching Wheel Well, White beam lines removed) */}
           {rockRrProps.isVisible && (
-            <g id="rock-overlay-rr" opacity={rockRrProps.opacity}>
+            <g id="rock-overlay-rr" opacity={rockRrProps.opacity} transform={`translate(${rockRrOffset.dx}, ${rockRrOffset.dy})`}>
               <g style={rockRrProps.isStrobing ? { animation: `lightStrobeFlash ${rockRrProps.strobeDuration} infinite` } : undefined}>
                 {/* Intense light cone shooting OUTWARD directly from touching the wheel well */}
                 <polygon points="670,412 765,412 805,525 630,525" fill="url(#rock-rr-outward)" opacity="0.95" />
                 <ellipse cx="718" cy="416" rx="46" ry="24" fill="url(#rock-rr-glow)" opacity="0.95" />
-                <circle cx="718" cy="416" r="11" fill={rockRearRight?.color || '#38BDF8'} />
-                <circle cx="718" cy="416" r="6" fill="#FFFFFF" />
               </g>
             </g>
           )}
@@ -1075,7 +1067,7 @@ export const HummerTopDown: React.FC<HummerTopDownProps> = ({
             <g id="amber-cab-marker-custom-overlay" opacity={markersProps.opacity}>
               <g style={markersProps.isStrobing ? { animation: `lightStrobeFlash ${markersProps.strobeDuration} infinite` } : undefined}>
                 <polygon
-                  points="380,200 380,360 290,375 290,185"
+                  points={`${380 + markerDx},${200 + markerDy} ${380 + markerDx},${360 + markerDy} ${290 + markerDx},${375 + markerDy} ${290 + markerDx},${185 + markerDy}`}
                   fill="url(#cab-marker-wash)"
                   opacity="0.8"
                 />
