@@ -45,7 +45,7 @@ export const DEFAULT_CHANNELS: ChannelConfig[] = [
   },
   {
     id: 4,
-    name: 'Amber Cab Markers (x5)',
+    name: 'Cab Markers (x5)',
     category: 'exterior-front',
     isOn: false,
     color: '#F59E0B', // Amber
