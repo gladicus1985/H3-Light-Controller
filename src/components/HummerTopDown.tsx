@@ -2,6 +2,7 @@ import React, { useMemo, useState, useRef } from 'react';
 import { ChannelConfig } from '../types';
 import { DEFAULT_CHANNELS } from '../data/defaultChannels';
 import * as LucideIcons from 'lucide-react';
+import defaultVehiclePhoto from '../assets/images/hummer_top_down_photo_1791094226025.jpg';
 
 interface VehicleHotspotProps {
   channel: ChannelConfig;
@@ -157,6 +158,8 @@ export const HummerTopDown: React.FC<HummerTopDownProps> = ({
   onEditChannel,
   customImageUrl,
 }) => {
+  const activeVehicleImage = customImageUrl || defaultVehiclePhoto;
+
   // Map channels by ID for fast lookup
   const channelMap = useMemo(() => {
     const map = new Map<number, ChannelConfig>();
@@ -182,16 +185,13 @@ export const HummerTopDown: React.FC<HummerTopDownProps> = ({
   const rearCornerLeft = channelMap.get(15);
   const rearCornerRight = channelMap.get(16);
 
-  const getLightOffset = (ch?: ChannelConfig, defaultX = 50, defaultY = 50) => {
+  const getLightOffset = (ch?: ChannelConfig, svgBaselineX = 50, svgBaselineY = 50) => {
     if (!ch) return { dx: 0, dy: 0 };
-    const defaultCh = DEFAULT_CHANNELS.find(d => d.id === ch.id);
-    const defX = defaultCh?.position.x ?? defaultX;
-    const defY = defaultCh?.position.y ?? defaultY;
-    const lp = ch.lightPosition || { x: defX, y: defY };
+    const lp = ch.lightPosition || ch.position || { x: svgBaselineX, y: svgBaselineY };
     const targetX = (lp.x / 100) * 1000;
     const targetY = (lp.y / 100) * 560;
-    const baseCenterX = (defX / 100) * 1000;
-    const baseCenterY = (defY / 100) * 560;
+    const baseCenterX = (svgBaselineX / 100) * 1000;
+    const baseCenterY = (svgBaselineY / 100) * 560;
     return {
       dx: targetX - baseCenterX,
       dy: targetY - baseCenterY,
@@ -200,20 +200,20 @@ export const HummerTopDown: React.FC<HummerTopDownProps> = ({
 
   const lbOffset = getLightOffset(lightbar, 31, 50);
   const grilleOffset = getLightOffset(grillePods, 8, 50);
-  const fogsOffset = getLightOffset(fogs, 13, 32);
+  const fogsOffset = getLightOffset(fogs, 13.5, 50);
   const markersOffset = getLightOffset(markers, 43, 50);
   const markerDx = markersOffset.dx;
   const markerDy = markersOffset.dy;
   const ditchLOffset = getLightOffset(ditchLeft, 32, 19);
   const ditchROffset = getLightOffset(ditchRight, 32, 81);
-  const rockFlOffset = getLightOffset(rockFrontLeft, 22, 23);
-  const rockFrOffset = getLightOffset(rockFrontRight, 22, 73.5);
-  const campLOffset = getLightOffset(campLeft, 47, 29);
-  const campROffset = getLightOffset(campRight, 47, 71);
+  const rockFlOffset = getLightOffset(rockFrontLeft, 22, 20);
+  const rockFrOffset = getLightOffset(rockFrontRight, 22, 78);
+  const campLOffset = getLightOffset(campLeft, 47, 21);
+  const campROffset = getLightOffset(campRight, 47, 79);
   const rearChaseOffset = getLightOffset(rearChase, 79, 50);
-  const rearBackupOffset = getLightOffset(rearBackup, 73, 50);
-  const rockRlOffset = getLightOffset(rockRearLeft, 72, 23);
-  const rockRrOffset = getLightOffset(rockRearRight, 72, 73.5);
+  const rearBackupOffset = getLightOffset(rearBackup, 73.6, 50);
+  const rockRlOffset = getLightOffset(rockRearLeft, 72, 20);
+  const rockRrOffset = getLightOffset(rockRearRight, 72, 78);
   const rearCornerLOffset = getLightOffset(rearCornerLeft, 82, 28);
   const rearCornerROffset = getLightOffset(rearCornerRight, 82, 72);
 
@@ -560,288 +560,23 @@ export const HummerTopDown: React.FC<HummerTopDownProps> = ({
           )}
 
           {/* ========================================================================= */}
-          {/* VEHICLE BODY SCHEMATIC (Accurately scaled top-down Hummer H3) */}
+          {/* VEHICLE PHOTO BASE (Default Hummer H3 photo image stretched to full frame) */}
           {/* ========================================================================= */}
-          
-          {/* If user provided custom image, stretch it to fit the entire display with no filler space */}
-          {customImageUrl ? (
-            <image
-              href={customImageUrl}
-              x="0"
-              y="0"
-              width="1000"
-              height="560"
-              preserveAspectRatio="none"
-            />
-          ) : (
-            <g id="hummer-h3-model">
-              {/* Drop shadow under vehicle body */}
-              <rect
-                x="115"
-                y="130"
-                width="720"
-                height="300"
-                rx="35"
-                fill="#05070a"
-                opacity="0.8"
-                filter="blur(14px)"
-              />
-
-              {/* Tires / Wheels sticking out at corners */}
-              {/* Front Left Tire */}
-              <rect x="175" y="112" width="95" height="34" rx="8" fill="#1b1e23" stroke="#0e1014" strokeWidth="2" />
-              {/* Front Right Tire */}
-              <rect x="175" y="414" width="95" height="34" rx="8" fill="#1b1e23" stroke="#0e1014" strokeWidth="2" />
-              {/* Rear Left Tire */}
-              <rect x="670" y="112" width="95" height="34" rx="8" fill="#1b1e23" stroke="#0e1014" strokeWidth="2" />
-              {/* Rear Right Tire */}
-              <rect x="670" y="414" width="95" height="34" rx="8" fill="#1b1e23" stroke="#0e1014" strokeWidth="2" />
-
-              {/* Rocker Panels / Rock Sliders under doors */}
-              <rect x="330" y="128" width="310" height="14" rx="5" fill="#181c20" stroke="#0d0e12" strokeWidth="1.5" />
-              <rect x="330" y="418" width="310" height="14" rx="5" fill="#181c20" stroke="#0d0e12" strokeWidth="1.5" />
-
-              {/* Heavy Duty Front Bumper Assembly */}
-              <path
-                d="M 115 170 C 105 200, 105 360, 115 390 L 135 385 L 135 175 Z"
-                fill="#1c2026"
-                stroke="#0e1014"
-                strokeWidth="2"
-              />
-              {/* Front Tow Loops & Skid Plate */}
-              <rect x="108" y="240" width="10" height="15" rx="3" fill="#333a42" />
-              <rect x="108" y="305" width="10" height="15" rx="3" fill="#333a42" />
-
-              {/* Main Hummer H3 Body Outline (Pewter Metallic) - Streamlined flush rear without spare tire carrier */}
-              <path
-                d="
-                  M 130 180
-                  C 130 170, 140 162, 155 160
-                  L 175 140
-                  L 270 140
-                  L 290 160
-                  L 660 160
-                  L 680 140
-                  L 775 140
-                  L 795 165
-                  L 795 395
-                  L 775 420
-                  L 680 420
-                  L 660 400
-                  L 290 400
-                  L 270 420
-                  L 175 420
-                  L 155 400
-                  C 140 398, 130 390, 130 380
-                  Z
-                "
-                fill="url(#pewter-body)"
-                stroke="#524d45"
-                strokeWidth="2.5"
-              />
-
-              {/* Prominent H3 Flared Wheel Arches (Fender Flares) */}
-              {/* Front Left Flare */}
-              <path d="M 170 160 L 180 138 L 265 138 L 275 160 Z" fill="#69645c" stroke="#48443e" strokeWidth="1.5" />
-              {/* Front Right Flare */}
-              <path d="M 170 400 L 180 422 L 265 422 L 275 400 Z" fill="#69645c" stroke="#48443e" strokeWidth="1.5" />
-              {/* Rear Left Flare */}
-              <path d="M 675 160 L 685 138 L 770 138 L 780 160 Z" fill="#69645c" stroke="#48443e" strokeWidth="1.5" />
-              {/* Rear Right Flare */}
-              <path d="M 675 400 L 685 422 L 770 422 L 780 400 Z" fill="#69645c" stroke="#48443e" strokeWidth="1.5" />
-
-              {/* Iconic 7-Slot Grille & Front Fascia */}
-              <rect x="128" y="210" width="10" height="140" rx="3" fill="#1a1d22" stroke="#48443e" strokeWidth="1.5" />
-              {[0, 1, 2, 3, 4, 5, 6].map((slot) => (
-                <rect
-                  key={slot}
-                  x="129"
-                  y={218 + slot * 18}
-                  width="7"
-                  height="12"
-                  rx="2"
-                  fill="#0a0c0e"
-                />
-              ))}
-
-              {/* Headlights & Turn Signals */}
-              <circle cx="134" cy="195" r="9" fill={grillePods?.isOn ? (grillePods.color || '#FFFFFF') : '#2d333b'} stroke="#60666f" strokeWidth="1.5" />
-              <circle cx="134" cy="365" r="9" fill={grillePods?.isOn ? (grillePods.color || '#FFFFFF') : '#2d333b'} stroke="#60666f" strokeWidth="1.5" />
-              {/* Amber Corner Turn Signals */}
-              <rect x="156" y="160" width="12" height="4" rx="1" fill="#f59e0b" />
-              <rect x="156" y="396" width="12" height="4" rx="1" fill="#f59e0b" />
-
-              {/* Hood Louver / Center Cowl Vent (Iconic H3 feature from photo) */}
-              <rect
-                x="146"
-                y="220"
-                width="76"
-                height="120"
-                rx="6"
-                fill="url(#hood-louver)"
-                stroke="#121518"
-                strokeWidth="2"
-              />
-              {/* Louver Slits */}
-              {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
-                <line
-                  key={i}
-                  x1={155 + i * 8}
-                  y1="230"
-                  x2={155 + i * 8}
-                  y2="330"
-                  stroke="#101215"
-                  strokeWidth="3.5"
-                  strokeLinecap="round"
-                />
-              ))}
-
-              {/* Windshield & Wiper Cowl */}
-              <path
-                d="M 285 180 L 325 185 L 325 375 L 285 380 Z"
-                fill="#131921"
-                stroke="#222b37"
-                strokeWidth="1.5"
-              />
-              {/* Wiper blades */}
-              <line x1="290" y1="210" x2="315" y2="260" stroke="#000000" strokeWidth="3" strokeLinecap="round" />
-              <line x1="290" y1="295" x2="315" y2="345" stroke="#000000" strokeWidth="3" strokeLinecap="round" />
-
-              {/* Side Mirrors (Black, jutting out at A-pillar) */}
-              <rect x="352" y="125" width="24" height="15" rx="3" fill="#1b1f24" stroke="#0e1115" strokeWidth="1.5" />
-              <line x1="335" y1="165" x2="356" y2="135" stroke="#121519" strokeWidth="5" strokeLinecap="round" />
-              <rect x="352" y="420" width="24" height="15" rx="3" fill="#1b1f24" stroke="#0e1115" strokeWidth="1.5" />
-              <line x1="335" y1="395" x2="356" y2="425" stroke="#121519" strokeWidth="5" strokeLinecap="round" />
-
-              {/* Side Windows & Pillars */}
-              <rect x="330" y="172" width="160" height="14" rx="2" fill="#131920" />
-              <rect x="500" y="172" width="140" height="14" rx="2" fill="#131920" />
-              <rect x="650" y="172" width="130" height="14" rx="2" fill="#131920" />
-
-              <rect x="330" y="374" width="160" height="14" rx="2" fill="#131920" />
-              <rect x="500" y="374" width="140" height="14" rx="2" fill="#131920" />
-              <rect x="650" y="374" width="130" height="14" rx="2" fill="#131920" />
-
-              {/* Sunroof with glass & rubber trim */}
-              <rect
-                x="408"
-                y="218"
-                width="92"
-                height="124"
-                rx="10"
-                fill="url(#sunroof-glass)"
-                stroke="#151a20"
-                strokeWidth="4"
-              />
-              {/* Roof Longitudinal Stiffening Ribs */}
-              <line x1="535" y1="240" x2="770" y2="240" stroke="#716c63" strokeWidth="2.5" />
-              <line x1="535" y1="265" x2="770" y2="265" stroke="#716c63" strokeWidth="2.5" />
-              <line x1="535" y1="295" x2="770" y2="295" stroke="#716c63" strokeWidth="2.5" />
-              <line x1="535" y1="320" x2="770" y2="320" stroke="#716c63" strokeWidth="2.5" />
-
-              {/* Black Roof Rack System */}
-              {/* Left & Right Longitudinal Side Rails */}
-              <rect x="365" y="190" width="420" height="14" rx="4" fill="#15181c" stroke="#2a3038" strokeWidth="1.5" />
-              <rect x="365" y="356" width="420" height="14" rx="4" fill="#15181c" stroke="#2a3038" strokeWidth="1.5" />
-              
-              {/* Crossbar 1 (Behind Sunroof) */}
-              <rect x="518" y="184" width="18" height="192" rx="3" fill="#1e2228" stroke="#333942" strokeWidth="1.5" />
-              {/* Crossbar 2 (Rear Cargo Section) */}
-              <rect x="718" y="184" width="18" height="192" rx="3" fill="#1e2228" stroke="#333942" strokeWidth="1.5" />
-
-              {/* 5 Amber Cab Marker Lights (Ch 4) - Positioned along roof brow directly above the windscreen */}
-              {/* Equally spaced out and smoke grey in color; illuminate in glowing amber when activated */}
-              <g id="amber-cab-marker-assembly" opacity={markersProps.isVisible ? markersProps.opacity : 1}>
-                <g style={markersProps.isStrobing ? { animation: `lightStrobeFlash ${markersProps.strobeDuration} infinite` } : undefined}>
-                  {/* Forward amber ambient wash when activated */}
-                  {markersProps.isVisible && (
-                    <polygon
-                      points={`${380 + markerDx},${200 + markerDy} ${380 + markerDx},${360 + markerDy} ${290 + markerDx},${375 + markerDy} ${290 + markerDx},${185 + markerDy}`}
-                      fill="url(#cab-marker-wash)"
-                      opacity="0.8"
-                    />
-                  )}
-
-                  {CAB_MARKER_PODS.map((pod, idx) => {
-                    const isMarkerOn = markersProps.isVisible;
-                    const markerColor = markers?.color || '#F59E0B';
-                    return (
-                      <g key={idx} id={`cab-marker-unit-${idx}`}>
-                        {/* Active amber radial glow halo */}
-                        {isMarkerOn && (
-                          <ellipse cx={pod.cx} cy={pod.y} rx="16" ry="10" fill={markerColor} opacity="0.6" />
-                        )}
-                        {/* Smoked grey aerodynamic base pod housing */}
-                        <rect
-                          x={pod.x}
-                          y={pod.y - 6}
-                          width="13"
-                          height="12"
-                          rx="4"
-                          fill="#222730"
-                          stroke="#101317"
-                          strokeWidth="1.2"
-                        />
-                        {/* Smoked lens: deep smoke grey when off, brilliant amber when activated */}
-                        <rect
-                          x={pod.x + 1.5}
-                          y={pod.y - 4.5}
-                          width="9.5"
-                          height="9"
-                          rx="2.5"
-                          fill={isMarkerOn ? markerColor : '#3e4450'}
-                          stroke={isMarkerOn ? '#FBBF24' : '#272c35'}
-                          strokeWidth="0.8"
-                        />
-                        {/* Inner smoked reflection shine when off */}
-                        {!isMarkerOn && (
-                          <line
-                            x1={pod.x + 3}
-                            y1={pod.y - 2}
-                            x2={pod.x + 7}
-                            y2={pod.y - 2}
-                            stroke="#64748b"
-                            strokeWidth="1"
-                            strokeLinecap="round"
-                          />
-                        )}
-                        {/* Intense glowing amber LED bulb core when on */}
-                        {isMarkerOn && (
-                          <>
-                            <circle cx={pod.cx} cy={pod.y} r="2.8" fill="#FFFBEB" />
-                            <circle cx={pod.cx} cy={pod.y} r="1.4" fill="#FFFFFF" />
-                          </>
-                        )}
-                      </g>
-                    );
-                  })}
-                </g>
-              </g>
-
-              {/* 50" Curved Lightbar at Roof Brow (Ch 1) */}
-              <path
-                d="M 324 195 Q 328 280 324 365"
-                fill="none"
-                stroke={lightbar?.isOn ? (lightbar.color || '#38BDF8') : '#1e2329'}
-                strokeWidth={lightbar?.isOn ? 6 : 4.5}
-                strokeLinecap="round"
-              />
-
-              {/* Flush Rear Tail Lights */}
-              <rect x="793" y="175" width="8" height="26" rx="2" fill="#b91c1c" stroke="#7f1d1d" strokeWidth="1" />
-              <rect x="793" y="359" width="8" height="26" rx="2" fill="#b91c1c" stroke="#7f1d1d" strokeWidth="1" />
-
-          
-              
-            </g>
-          )}
+          <image
+            href={activeVehicleImage}
+            x="0"
+            y="0"
+            width="1000"
+            height="560"
+            preserveAspectRatio="none"
+          />
 
           {/* ========================================================================= */}
           {/* EXTERIOR HIGH-BRIGHTNESS PROJECTION BEAMS (EXITING VEHICLE BODY ONTO ROAD) */}
           {/* ========================================================================= */}
 
           {/* Front Lightbar Massive Forward Throw (Exiting roof brow forward across hood onto road) */}
-          {lightbarProps.isVisible && (
+          {lightbarProps.isVisible && !lightbar?.name.toLowerCase().includes('aux') && (
             <g id="front-lightbar-throw" opacity={lightbarProps.opacity} transform={`translate(${lbOffset.dx}, ${lbOffset.dy})`}>
               <g style={lightbarProps.isStrobing ? { animation: `lightStrobeFlash ${lightbarProps.strobeDuration} infinite` } : undefined}>
                 <polygon
@@ -1062,8 +797,8 @@ export const HummerTopDown: React.FC<HummerTopDownProps> = ({
             </g>
           )}
 
-          {/* If custom image is used, render cab markers overlay on top so they remain visible */}
-          {customImageUrl && markersProps.isVisible && (
+          {/* Cab markers illuminated overlay */}
+          {markersProps.isVisible && (
             <g id="amber-cab-marker-custom-overlay" opacity={markersProps.opacity}>
               <g style={markersProps.isStrobing ? { animation: `lightStrobeFlash ${markersProps.strobeDuration} infinite` } : undefined}>
                 <polygon

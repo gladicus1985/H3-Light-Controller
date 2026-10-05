@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
 import { HardwareConfig, ChannelConfig } from '../types';
-import { X, Usb, Wifi, Upload, RotateCcw, ShieldCheck, Check, Terminal, Eye, EyeOff, Edit3 } from 'lucide-react';
+import { X, Usb, Wifi, Upload, RotateCcw, ShieldCheck, Check, Terminal, Eye, EyeOff, Edit3, Save, FileCode } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
+import defaultVehiclePhoto from '../assets/images/hummer_top_down_photo_1791094226025.jpg';
 
 interface HardwareSettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
   hardwareConfig: HardwareConfig;
   onSaveHardwareConfig: (config: HardwareConfig) => void;
-  customImageUrl: string | null;
-  onSetCustomImageUrl: (url: string | null) => void;
+  customImageUrl: string;
+  onSetCustomImageUrl: (url: string) => void;
   onResetToDefaults: () => void;
   channels: ChannelConfig[];
   onUpdateChannels: (channels: ChannelConfig[]) => void;
@@ -33,6 +34,36 @@ export const HardwareSettingsModal: React.FC<HardwareSettingsModalProps> = ({
   const [config, setConfig] = useState<HardwareConfig>({ ...hardwareConfig });
   const [serialStatus, setSerialStatus] = useState<string>('Ready to pair with USB relay');
   const [serialPort, setSerialPort] = useState<any>(null);
+  const [isSavingLocations, setIsSavingLocations] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [saveMessage, setSaveMessage] = useState('');
+
+  const handleSetAllLocationsAsDefault = async () => {
+    setIsSavingLocations(true);
+    setSaveStatus('idle');
+    setSaveMessage('');
+    try {
+      const response = await fetch('/api/save-default-channels', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(channels),
+      });
+      const data = await response.json();
+      if (response.ok && data.success) {
+        setSaveStatus('success');
+        setSaveMessage('Saved directly to defaultChannels.ts!');
+        setTimeout(() => setSaveStatus('idle'), 4000);
+      } else {
+        setSaveStatus('error');
+        setSaveMessage(data.error || 'Server error saving file');
+      }
+    } catch (err: any) {
+      setSaveStatus('error');
+      setSaveMessage(err.message || 'Failed to connect to dev server');
+    } finally {
+      setIsSavingLocations(false);
+    }
+  };
 
   // USB WebSerial connection test for Android Headunits
   const handleConnectSerial = async () => {
@@ -300,15 +331,15 @@ export const HardwareSettingsModal: React.FC<HardwareSettingsModalProps> = ({
             </div>
           </div>
 
-          {/* Vehicle Visual: Custom Photo or SVG schematic */}
+          {/* Vehicle Visual: Top-Down Photo */}
           <div className="pt-2 border-t border-slate-800">
             <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
-              Hummer Top-Down Visual
+              Hummer Top-Down Vehicle Photo
             </label>
             <div className="flex items-center gap-3">
               <label className="flex-1 flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl border border-dashed border-slate-700 bg-slate-900/60 hover:bg-slate-800/80 text-slate-300 hover:text-white cursor-pointer transition-colors text-xs font-semibold">
                 <Upload className="w-4 h-4 text-cyan-400" />
-                <span>Upload Vehicle Image (e.g. GisDx.jpg)</span>
+                <span>Replace Vehicle Photo</span>
                 <input
                   type="file"
                   accept="image/*"
@@ -317,39 +348,59 @@ export const HardwareSettingsModal: React.FC<HardwareSettingsModalProps> = ({
                 />
               </label>
 
-              {customImageUrl && (
+              {customImageUrl && customImageUrl !== defaultVehiclePhoto && (
                 <button
                   type="button"
-                  onClick={() => onSetCustomImageUrl(null)}
-                  className="px-3 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-amber-400 hover:text-amber-300 hover:bg-slate-800"
-                  title="Revert to Precision Vector Schematic"
+                  onClick={() => onSetCustomImageUrl(defaultVehiclePhoto)}
+                  className="px-3 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-amber-400 hover:text-amber-300 hover:bg-slate-800 transition-colors"
+                  title="Reset to Default Hummer Photo"
                 >
-                  Use Vector
+                  Reset to Default Photo
                 </button>
               )}
             </div>
-            {customImageUrl && (
-              <p className="text-[11px] text-emerald-400 mt-1.5 flex items-center gap-1">
-                <span>Custom top-down vehicle image is currently active.</span>
-              </p>
-            )}
+            <p className="text-[11px] text-emerald-400 mt-1.5 flex items-center gap-1">
+              <span>Default photographic Hummer H3 top-down image is active.</span>
+            </p>
           </div>
 
-          {/* Factory Reset button */}
-          <div className="pt-2 border-t border-slate-800 flex items-center justify-between">
+          {/* Developer Tool: Set All Current Locations, Colors, Icons & Status as Default */}
+          <div className="pt-3 border-t border-slate-800 flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                <FileCode className="w-4 h-4 text-cyan-400" />
+                <span>Development Calibration Tool</span>
+              </span>
+              {saveStatus === 'success' && (
+                <span className="text-xs font-bold text-emerald-400 flex items-center gap-1 animate-pulse">
+                  <Check className="w-3.5 h-3.5" />
+                  <span>Saved to defaultChannels.ts!</span>
+                </span>
+              )}
+              {saveStatus === 'error' && (
+                <span className="text-xs font-bold text-red-400">
+                  {saveMessage}
+                </span>
+              )}
+            </div>
+
             <button
               type="button"
-              onClick={() => {
-                if (window.confirm('Reset all 16 channel configurations and names back to default Hummer H3 layout?')) {
-                  onResetToDefaults();
-                  onClose();
-                }
-              }}
-              className="flex items-center gap-1 text-xs text-red-400 hover:text-red-300"
+              id="btn-set-all-locations-default"
+              disabled={isSavingLocations}
+              onClick={handleSetAllLocationsAsDefault}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-cyan-950/40 hover:bg-cyan-900/60 border-2 border-cyan-700/80 hover:border-cyan-500 text-xs font-black uppercase tracking-wider text-cyan-200 hover:text-white transition-all shadow-md active:scale-95 disabled:opacity-50 cursor-pointer"
             >
-              <RotateCcw className="w-3.5 h-3.5" />
-              <span>Reset Channels to Default</span>
+              <Save className="w-4 h-4 text-cyan-400" />
+              <span>
+                {isSavingLocations
+                  ? 'Saving to defaultChannels.ts...'
+                  : 'Set All Locations, Colors, Icons & Status as Default'}
+              </span>
             </button>
+            <p className="text-[10px] text-slate-400 leading-normal">
+              Directly saves and writes all 16 switch button locations, light emission coordinates, colors, icon selections, and light status (enabled/disabled) into <code className="text-cyan-400 font-mono">defaultChannels.ts</code> in the project code.
+            </p>
           </div>
 
           {/* Footer Actions */}

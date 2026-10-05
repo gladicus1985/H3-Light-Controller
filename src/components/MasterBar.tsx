@@ -20,105 +20,136 @@ export const MasterBar: React.FC<MasterBarProps> = ({
   onActivateSosClick,
   onOpenSosSettings,
 }) => {
-  const timerRef = useRef<number | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isLongPress = useRef(false);
 
-  const handleMouseDown = () => {
+  const handlePointerDown = () => {
     isLongPress.current = false;
-    timerRef.current = window.setTimeout(() => {
+    timerRef.current = setTimeout(() => {
       isLongPress.current = true;
+      try {
+        if ('vibrate' in navigator) navigator.vibrate(60);
+      } catch {
+        // ignore
+      }
       onOpenSosSettings();
-    }, 600);
+    }, 550);
   };
 
-  const handleMouseUp = () => {
-    if (timerRef.current) clearTimeout(timerRef.current);
+  const handlePointerUp = () => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
     if (!isLongPress.current) {
       onActivateSosClick();
     }
   };
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    e.preventDefault();
-    handleMouseDown();
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    e.preventDefault();
-    handleMouseUp();
+  const handlePointerCancel = () => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    isLongPress.current = false;
   };
 
   return (
-    <header className="w-full bg-[#14171d] border-b-2 border-[#252b36] px-3 py-1.5 flex items-center justify-between gap-2 select-none sticky top-0 z-30 shadow-md">
-      {/* Brand & Vehicle Title */}
-      <div className="flex items-center gap-2">
-        <span className="text-sm font-black tracking-wider text-white uppercase font-sans">
-          HUMMER H3
-        </span>
-      </div>
-
-      {/* Quick Controls: Settings, SOS, ALL ON, ALL OFF */}
-      <div className="flex items-center gap-1.5">
-        <button
-          type="button"
-          id="btn-open-settings"
-          aria-label="App & Hardware Settings"
-          onClick={onOpenSettings}
-          className="w-8 h-8 flex items-center justify-center rounded bg-[#1e232c] hover:bg-[#282f3a] border border-[#313a48] text-[#cbd5e1] hover:text-white transition-colors"
-          title="Hardware & Switch Setup"
-        >
-          <Settings className="w-4 h-4" />
-        </button>
-
-        {/* SOS Button: Click for verification prompt, Hold for editable settings */}
-        <button
-          type="button"
-          id="btn-master-sos"
-          aria-label="SOS Emergency Flash"
-          onMouseDown={handleMouseDown}
-          onMouseUp={handleMouseUp}
-          onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEnd}
-          className={`
-            flex items-center gap-1 px-3 py-1.5 rounded text-xs font-black uppercase tracking-wider transition-all shadow-sm active:translate-y-0.5
-            ${
-              isSosActive
-                ? 'bg-red-600 hover:bg-red-500 text-white border-2 border-red-400 animate-pulse ring-2 ring-red-500/50'
-                : 'bg-red-950/80 hover:bg-red-900 text-red-200 border border-red-800/80'
-            }
-          `}
-          title="Click to Activate SOS (Hold to Edit Settings)"
-        >
-          <ShieldAlert className="w-3.5 h-3.5" />
-          <span>SOS</span>
-        </button>
-
+    <header className="w-full bg-transparent border-none px-4 py-2 select-none z-30 flex items-center justify-center flex-shrink-0">
+      {/* 4 Center-Aligned Evenly Spaced Buttons - Minimalist & Balanced */}
+      <div className="grid grid-cols-4 gap-3 max-w-2xl w-full mx-auto">
+        {/* 1. ALL ON */}
         <button
           type="button"
           id="btn-master-all-on"
           aria-label="Turn All Lights On"
           onClick={onMasterAllOn}
-          className="px-3 py-1.5 rounded text-xs font-black uppercase tracking-wider bg-[#282e38] hover:bg-[#343c49] text-white border border-[#444f60] transition-colors shadow-sm active:translate-y-0.5"
+          className="flex flex-col items-center justify-center py-2.5 px-2 rounded-xl text-xs font-black uppercase tracking-wider bg-[#1a202c]/85 hover:bg-[#242c3d] text-amber-200 hover:text-white border-2 border-[#333d4e] hover:border-amber-400/80 transition-all shadow-sm active:scale-95 group select-none touch-none"
+          title="Turn On All Enabled Relays"
         >
-          ALL ON
+          <Power className="h-9 w-9 mb-1.5 text-amber-400 group-hover:text-amber-300 transition-colors" strokeWidth={2} />
+          <span className="text-[11px] font-black uppercase tracking-wider text-center truncate w-full leading-tight">
+            ALL ON
+          </span>
+          <span className="text-[9px] text-slate-500 font-semibold tracking-wide mt-0.5 truncate">
+            Master On
+          </span>
         </button>
 
+        {/* 2. SOS Button: Outlined in red, middle matches the ON button */}
+        <button
+          type="button"
+          id="btn-master-sos"
+          aria-label="SOS Emergency Flash"
+          onPointerDown={handlePointerDown}
+          onPointerUp={handlePointerUp}
+          onPointerCancel={handlePointerCancel}
+          onContextMenu={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+          className={`
+            flex flex-col items-center justify-center py-2.5 px-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-sm active:scale-95 border-2 select-none touch-none
+            bg-[#1a202c]/85 hover:bg-[#242c3d]
+            ${
+              isSosActive
+                ? 'border-red-500 animate-pulse text-red-200 shadow-[0_0_14px_rgba(239,68,68,0.3)] ring-1 ring-red-500/50'
+                : 'border-red-800/70 hover:border-red-500 text-red-300 hover:text-red-200'
+            }
+          `}
+          title="Click to Activate SOS (Hold to Edit Settings)"
+        >
+          <ShieldAlert className="h-9 w-9 mb-1.5 text-red-400 group-hover:text-red-300 transition-colors" strokeWidth={2} />
+          <span className="text-[11px] font-black uppercase tracking-wider text-center truncate w-full leading-tight">
+            SOS
+          </span>
+          <span className="text-[9px] text-slate-500 font-semibold tracking-wide mt-0.5 truncate">
+            Hold to Edit
+          </span>
+        </button>
+
+        {/* 3. SETTINGS: Minimalist theme matching bottom icons (no blue) */}
+        <button
+          type="button"
+          id="btn-open-settings"
+          aria-label="App & Hardware Settings"
+          onClick={onOpenSettings}
+          className="flex flex-col items-center justify-center py-2.5 px-2 rounded-xl bg-[#1a202c]/85 hover:bg-[#242c3d] border-2 border-[#333d4e] hover:border-slate-400 text-slate-200 hover:text-white text-xs font-black uppercase tracking-wider transition-all shadow-sm active:scale-95 group select-none touch-none"
+          title="Hardware & Switch Setup"
+        >
+          <Settings className="h-9 w-9 mb-1.5 text-slate-400 group-hover:text-white transition-colors" strokeWidth={2} />
+          <span className="text-[11px] font-black uppercase tracking-wider text-center truncate w-full leading-tight">
+            SETTINGS
+          </span>
+          <span className="text-[9px] text-slate-500 font-semibold tracking-wide mt-0.5 truncate">
+            Config & Relays
+          </span>
+        </button>
+
+        {/* 4. ALL OFF: Outlined in red, middle matches the ON button */}
         <button
           type="button"
           id="btn-master-all-off"
           aria-label="Emergency Master All Off"
           onClick={onMasterAllOff}
           className={`
-            flex items-center gap-1 px-3 py-1.5 rounded text-xs font-black uppercase tracking-wider transition-colors shadow-sm active:translate-y-0.5
+            flex flex-col items-center justify-center py-2.5 px-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-sm active:scale-95 border-2 select-none touch-none
+            bg-[#1a202c]/85 hover:bg-[#242c3d]
             ${
               activeCount > 0
-                ? 'bg-[#b91c1c] hover:bg-[#dc2626] text-white border border-[#ef4444]'
-                : 'bg-[#1e232c] text-[#64748b] border border-[#2d3440] cursor-default'
+                ? 'border-red-500 hover:border-red-400 text-red-200 hover:text-white shadow-[0_0_12px_rgba(239,68,68,0.25)]'
+                : 'border-[#333d4e] hover:border-red-900/60 text-slate-400 hover:text-slate-300'
             }
           `}
+          title="Cut All Relays"
         >
-          <Power className="w-3.5 h-3.5" />
-          <span>ALL OFF</span>
+          <Power className={`h-9 w-9 mb-1.5 transition-colors ${activeCount > 0 ? 'text-red-400' : 'text-slate-500'}`} strokeWidth={2} />
+          <span className="text-[11px] font-black uppercase tracking-wider text-center truncate w-full leading-tight">
+            ALL OFF
+          </span>
+          <span className="text-[9px] text-slate-500 font-semibold tracking-wide mt-0.5 truncate">
+            Kill Switch
+          </span>
         </button>
       </div>
     </header>

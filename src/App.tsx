@@ -16,32 +16,38 @@ import { SOSEditModal, SOSConfig } from './components/SOSEditModal';
 import { ShieldAlert } from 'lucide-react';
 import defaultVehiclePhoto from './assets/images/hummer_top_down_photo_1791094226025.jpg';
 
-const STORAGE_KEY_CHANNELS = 'hummer_h3_channels_v8';
+const STORAGE_KEY_CHANNELS = 'hummer_h3_channels_v13';
 const STORAGE_KEY_HARDWARE = 'hummer_h3_hardware_v2';
 const STORAGE_KEY_IMAGE = 'hummer_h3_custom_img_v2';
 const STORAGE_KEY_SCENES = 'hummer_h3_scenes_v2';
 
 export default function App() {
-  // 16-Channel state loaded from localStorage or defaults
+  // 16-Channel state: Code in DEFAULT_CHANNELS is the master source of truth for positions,
+  // light positions, names, icons & colors.
+  // We initialize directly from DEFAULT_CHANNELS and retain runtime switch status (isOn, mode, brightness)
+  // across page reloads. This guarantees that user edits in defaultChannels.ts immediately persist
+  // across updates & refreshes!
   const [channels, setChannels] = useState<ChannelConfig[]>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY_CHANNELS);
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length === 16) {
-          return parsed.map((ch: ChannelConfig) => {
-            const defaultCh = DEFAULT_CHANNELS.find(d => d.id === ch.id);
-            if (ch.id === 2) {
-              return {
-                ...ch,
-                position: { x: 8, y: 50 },
-                lightPosition: { x: 8, y: 50 },
-              };
-            }
-            const targetPos = ch.lightPosition || defaultCh?.lightPosition || defaultCh?.position || ch.position;
+          return DEFAULT_CHANNELS.map((defaultCh) => {
+            const savedCh = parsed.find((p: ChannelConfig) => p.id === defaultCh.id);
+            if (!savedCh) return defaultCh;
             return {
-              ...ch,
-              position: { ...targetPos },
+              ...defaultCh,
+              name: savedCh.name || defaultCh.name,
+              iconName: savedCh.iconName || defaultCh.iconName,
+              color: savedCh.color || defaultCh.color,
+              position: savedCh.position || defaultCh.position,
+              lightPosition: savedCh.lightPosition || defaultCh.lightPosition,
+              isEnabled: typeof savedCh.isEnabled === 'boolean' ? savedCh.isEnabled : defaultCh.isEnabled !== false,
+              isOn: typeof savedCh.isOn === 'boolean' ? savedCh.isOn : defaultCh.isOn,
+              brightness: typeof savedCh.brightness === 'number' ? savedCh.brightness : defaultCh.brightness,
+              mode: savedCh.mode || defaultCh.mode,
+              strobeSpeed: savedCh.strobeSpeed || defaultCh.strobeSpeed,
             };
           });
         }
@@ -69,9 +75,10 @@ export default function App() {
     };
   });
 
-  // Optional custom vehicle image URL (defaulting to user-aligned Hummer H3 photo matching zHpkR.jpg)
-  const [customImageUrl, setCustomImageUrl] = useState<string | null>(() => {
-    return localStorage.getItem(STORAGE_KEY_IMAGE) || defaultVehiclePhoto;
+  // Vehicle image URL (permanently defaulted to the user's uploaded photographic Hummer H3)
+  const [customImageUrl, setCustomImageUrl] = useState<string>(() => {
+    const saved = localStorage.getItem(STORAGE_KEY_IMAGE);
+    return saved && saved.length > 5 ? saved : defaultVehiclePhoto;
   });
 
   // Selected channel for inspecting / editing
@@ -329,7 +336,7 @@ export default function App() {
   const handleResetToDefaults = useCallback(() => {
     setChannels(DEFAULT_CHANNELS);
     setScenes(PRESET_SCENES);
-    setCustomImageUrl(null);
+    setCustomImageUrl(defaultVehiclePhoto);
   }, []);
 
   // Active channels count

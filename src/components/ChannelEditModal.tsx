@@ -27,6 +27,7 @@ import {
   Volume2,
   Disc,
   Sliders,
+  Copy,
 } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 
@@ -85,6 +86,7 @@ export const ChannelEditModal: React.FC<ChannelEditModalProps> = ({
   if (!isOpen || !channel) return null;
 
   const [formData, setFormData] = useState<ChannelConfig>({ ...channel });
+  const [copiedCode, setCopiedCode] = useState(false);
 
   const updateFormData = (patch: Partial<ChannelConfig>) => {
     setFormData((prev) => {
@@ -419,10 +421,20 @@ export const ChannelEditModal: React.FC<ChannelEditModalProps> = ({
           {/* Light Source Emission Location Calibration */}
           {(() => {
             const defaultCh = DEFAULT_CHANNELS.find(d => d.id === formData.id);
-            const defLightX = defaultCh?.position.x ?? 50;
-            const defLightY = defaultCh?.position.y ?? 50;
+            const defLightX = defaultCh?.lightPosition?.x ?? defaultCh?.position.x ?? 50;
+            const defLightY = defaultCh?.lightPosition?.y ?? defaultCh?.position.y ?? 50;
             const currentLightX = formData.lightPosition?.x ?? defLightX;
             const currentLightY = formData.lightPosition?.y ?? defLightY;
+            const currentBtnX = formData.position?.x ?? 50;
+            const currentBtnY = formData.position?.y ?? 50;
+
+            const handleCopySnippet = () => {
+              const snippet = `    position: { x: ${currentBtnX}, y: ${currentBtnY} },\n    lightPosition: { x: ${currentLightX}, y: ${currentLightY} },`;
+              navigator.clipboard?.writeText(snippet);
+              setCopiedCode(true);
+              setTimeout(() => setCopiedCode(false), 2500);
+            };
+
             return (
               <div className="p-3 bg-slate-900 border border-slate-800 rounded-xl space-y-3">
                 <div className="flex items-center justify-between">
@@ -476,9 +488,20 @@ export const ChannelEditModal: React.FC<ChannelEditModalProps> = ({
                     />
                   </div>
                 </div>
-                <p className="text-[10px] text-slate-500">
-                  Moves where the light source and glow emit from on the vehicle independently of the button.
-                </p>
+                <div className="flex items-center justify-between pt-1">
+                  <p className="text-[10px] text-slate-500">
+                    Moves where the light beam emits from on the vehicle.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleCopySnippet}
+                    className="flex items-center gap-1 px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-[10px] text-cyan-300 font-mono transition-colors"
+                    title="Copy exact coordinates to paste into defaultChannels.ts"
+                  >
+                    <Copy className="w-3 h-3" />
+                    <span>{copiedCode ? 'Copied to Clipboard!' : 'Copy Code Coordinates'}</span>
+                  </button>
+                </div>
               </div>
             );
           })()}
